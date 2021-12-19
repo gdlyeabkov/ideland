@@ -14,3 +14,4 @@ C:\wpf_projects\Ideland\Ideland\obj\Debug\Ideland.csproj.CoreCompileInputs.cache
 C:\wpf_projects\Ideland\Ideland\obj\Debug\Ideland.exe
 C:\wpf_projects\Ideland\Ideland\obj\Debug\Ideland.pdb
 C:\wpf_projects\Ideland\Ideland\obj\Debug\Ideland.csproj.AssemblyReference.cache
+C:\wpf_projects\Ideland\Ideland\obj\Debug\Assets\Dictionary1.baml

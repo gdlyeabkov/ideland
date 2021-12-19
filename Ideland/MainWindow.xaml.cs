@@ -13,6 +13,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Speech.Synthesis;
 
 namespace Ideland
 {
@@ -21,16 +22,31 @@ namespace Ideland
     /// </summary>
     public partial class MainWindow : Window
     {
+
+        public SpeechSynthesizer debugger;
+
         public MainWindow()
         {
             InitializeComponent();
+
+            debugger = new SpeechSynthesizer();
+
         }
 
         private void ExecuteCommandHandler(object sender, KeyEventArgs e)
         {
+            TextBox developerCmdInput = ((TextBox)(sender));
             if (Key.Enter == e.Key)
             {
-                Process.Start("cmd.exe");
+                try
+                {
+                    Process.Start(developerCmdInput.Text);
+                } catch (System.ComponentModel.Win32Exception error)
+                {
+                    debugger.Speak(error.ToString());
+                    developerCmdInput.Text = "";
+                }
+
             }
         }
     }

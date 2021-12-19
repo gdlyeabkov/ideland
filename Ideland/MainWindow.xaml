@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Ideland"
+        xmlns:sys="clr-namespace:System;assembly=System"
         mc:Ignorable="d"
         WindowState="Maximized" Title="Ideland" Height="450" Width="800">
     <DockPanel>
@@ -33,7 +34,16 @@
                         <TextBox KeyUp="ExecuteCommandHandler" Background="Transparent" BorderThickness="0" Text="_" Width="250" Foreground="White" />
                     </StackPanel>
                 </StackPanel>
-                <TextBox x:Name="sourceCode" DockPanel.Dock="Top" Background="Transparent" BorderThickness="0" />
+                <TextBox x:Name="sourceCode" SpellCheck.IsEnabled="True" AcceptsReturn="True" MinLines="999" DockPanel.Dock="Top" Background="Transparent" BorderThickness="0">
+                    <SpellCheck.CustomDictionaries>
+                        <!--
+                        customwords.lex is included as a content file
+                        <sys:Uri>pack://application:,,,/Assets/jsparser.lex</sys:Uri>
+                        
+                        <sys:Uri>pack://application:,,,Assets/jsparser.lex</sys:Uri>
+                        -->
+                    </SpellCheck.CustomDictionaries>
+                </TextBox>
             </DockPanel>
         </StackPanel>
     </DockPanel>
