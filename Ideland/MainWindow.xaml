@@ -19,11 +19,11 @@
         </StackPanel>
         <StackPanel DockPanel.Dock="Left" Orientation="Horizontal">
             <StackPanel x:Name="tabs" Width="50" Background="DarkSlateGray">
-                <TextBlock Text="🗎" Margin="10" Foreground="White" FontSize="28" DataContext="Проводник" MouseUp="SelectTabHandler" />
-                <TextBlock Text="🔍" Margin="10" Foreground="Gray" FontSize="18" DataContext="Поиск" MouseUp="SelectTabHandler" />
-                <TextBlock Text="☌" Margin="10" Foreground="Gray" FontSize="28" DataContext="Версии" MouseUp="SelectTabHandler" />
-                <TextBlock Text="🐞" Margin="10" Foreground="Gray" FontSize="18" DataContext="Отладка" MouseUp="SelectTabHandler" />
-                <TextBlock Text="⧉" Margin="10" Foreground="Gray" FontSize="28" DataContext="Расширения" MouseUp="SelectTabHandler" />
+                <TextBlock x:Name="startActiveTab" Text="🗎" Margin="10" Foreground="White" FontSize="28" DataContext="Проводник" MouseUp="SelectTabHandler" MouseEnter="TabHoverHandler" MouseLeave="TabHoutHandler" />
+                <TextBlock Text="🔍" Margin="10" Foreground="Gray" FontSize="18" DataContext="Поиск" MouseUp="SelectTabHandler" MouseEnter="TabHoverHandler" MouseLeave="TabHoutHandler" />
+                <TextBlock Text="☌" Margin="10" Foreground="Gray" FontSize="28" DataContext="Версии" MouseUp="SelectTabHandler" MouseEnter="TabHoverHandler" MouseLeave="TabHoutHandler" />
+                <TextBlock Text="🐞" Margin="10" Foreground="Gray" FontSize="18" DataContext="Отладка" MouseUp="SelectTabHandler" MouseEnter="TabHoverHandler" MouseLeave="TabHoutHandler" />
+                <TextBlock Text="⧉" Margin="10" Foreground="Gray" FontSize="28" DataContext="Расширения" MouseUp="SelectTabHandler" MouseEnter="TabHoverHandler" MouseLeave="TabHoutHandler" />
             </StackPanel>
             <StackPanel x:Name="explorer" Width="150" Background="SlateGray">
                 <!--

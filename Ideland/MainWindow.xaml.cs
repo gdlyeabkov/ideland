@@ -28,12 +28,14 @@ namespace Ideland
         public SpeechSynthesizer debugger;
         public string selectedFile = "None";
         public string currentProject = "None";
+        public TextBlock activeTab;
 
         public MainWindow()
         {
             InitializeComponent();
 
             debugger = new SpeechSynthesizer();
+            activeTab = startActiveTab;
 
         }
 
@@ -308,6 +310,9 @@ namespace Ideland
                 search.TextChanged += SearchExtensionsHandler;
                 debugger.Speak("Рисую тело расширений");
             }
+
+            activeTab = currentTab;
+
         }
 
         private void SearchFilesHandler(object sender, TextChangedEventArgs e)
@@ -374,5 +379,30 @@ namespace Ideland
             }
         }
 
+        private void TabHoutHandler(object sender, MouseEventArgs e)
+        {
+            TextBlock currentTab = ((TextBlock)(sender));
+            foreach (TextBlock tab in tabs.Children)
+            {
+                if (activeTab.Text == tab.Text)
+                {
+                    tab.Foreground = System.Windows.Media.Brushes.White;
+                } else
+                {
+                    tab.Foreground = System.Windows.Media.Brushes.Gray;
+                }
+            }
+        }
+
+        private void TabHoverHandler(object sender, MouseEventArgs e)
+        {
+            TextBlock currentTab = ((TextBlock)(sender));
+            foreach (TextBlock tab in tabs.Children)
+            {
+                tab.Foreground = System.Windows.Media.Brushes.Gray;
+            }
+            currentTab.Foreground = System.Windows.Media.Brushes.White;
+            activeTab.Foreground = System.Windows.Media.Brushes.White;
+        }
     }
 }
