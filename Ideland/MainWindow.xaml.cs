@@ -44,12 +44,29 @@ namespace Ideland
             TextBox developerCmdInput = ((TextBox)(sender));
             if (Key.Enter == e.Key)
             {
+                string commandExitCode = developerCmdInput.Text;
+                Process returnedCommand = null;
                 try
                 {
-                    Process.Start(developerCmdInput.Text);
+                    returnedCommand = Process.Start(developerCmdInput.Text);
                 } catch (System.ComponentModel.Win32Exception error)
                 {
-                    debugger.Speak(error.ToString());
+                    debugger.Speak("Не могу выполнить команду");
+                } finally
+                {
+                    StackPanel executedCommand = new StackPanel();
+                    executedCommand.Orientation = Orientation.Horizontal;
+                    executedCommand.Margin = new Thickness(10, 5, 0, 5);
+                    TextBlock executedCommandLabel = new TextBlock();
+                    executedCommandLabel.Text = developerCmdInput.Text;
+                    /*if (returnedCommand != null)
+                    {
+                        commandExitCode = returnedCommand.StandardOutput.ReadLine();
+                    }
+                    executedCommandLabel.Text = commandExitCode;*/
+                    executedCommandLabel.Foreground = System.Windows.Media.Brushes.White;
+                    executedCommand.Children.Add(executedCommandLabel);
+                    executedCommands.Children.Add(executedCommand);
                     developerCmdInput.Text = "";
                 }
 
@@ -192,6 +209,12 @@ namespace Ideland
                 string folder = ofd.SelectedPath;
                 currentProject = ofd.SelectedPath;
                 GetProjectFiles(folder);
+
+                currentDir.Text = ofd.SelectedPath + ">";
+                terminal.Visibility = Visibility.Visible;
+
+                // editorTabs.SelectedIndex = 0;
+
             }
         }
 
@@ -212,6 +235,9 @@ namespace Ideland
                 string file_text = File.ReadAllText(openedFilePath);
                 sourceCode.Text = file_text;
                 saveFileMenuItem.IsEnabled = true;
+
+                editorTabs.SelectedIndex = 0;
+
             }
         }
 
@@ -238,6 +264,17 @@ namespace Ideland
                     SaveFile();
                 }
             }
+            /* else {
+                // просто ввод кода
+                string[] literalSeparators = sourceCode.Text.Split(new Char[] { ' ', '\n' });
+                foreach (string literal in literalSeparators)
+                {
+                    if (literal == "<html>" || literal == "<head>" || literal == "<body>")
+                    {
+                        
+                    }
+                }
+            }*/
         }
 
         private void SaveFileHandler(object sender, RoutedEventArgs e)
@@ -404,5 +441,45 @@ namespace Ideland
             currentTab.Foreground = System.Windows.Media.Brushes.White;
             activeTab.Foreground = System.Windows.Media.Brushes.White;
         }
+
+        private void OpenTerminalHandler(object sender, RoutedEventArgs e)
+        {
+            terminal.Visibility = Visibility.Visible;
+            terminalInput.Focus();
+            currentDir.Text = Environment.GetFolderPath(System.Environment.SpecialFolder.UserProfile) + ">";
+        }
+
+        private void GetCommandDataHandler(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void KillTerminalHandler(object sender, MouseButtonEventArgs e)
+        {
+            terminal.Visibility = Visibility.Collapsed;
+        }
+
+        private void SetAppearanceHandler(object sender, RoutedEventArgs e)
+        {
+            MenuItem appearance = ((MenuItem)(sender));
+            string appearanceParam = appearance.DataContext.ToString();
+            if (appearanceParam == "Dark")
+            {
+                debugger.Speak("Задаю темную тему");
+                editor.Background = Brushes.DimGray;
+            }
+            else if (appearanceParam == "Light")
+            {
+                editor.Background = Brushes.LightGray;
+                debugger.Speak("Задаю светлую тему");
+            }
+        }
+
+        private void QuitHandler(object sender, RoutedEventArgs e)
+        {
+            this.Close();
+        }
+
+
     }
 }

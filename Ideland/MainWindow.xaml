@@ -12,6 +12,14 @@
             <MenuItem Header="Файл">
                 <MenuItem Header="Открыть проект" Click="OpenProjectHandler" />
                 <MenuItem Header="Сохранить файл" x:Name="saveFileMenuItem" IsEnabled="False" Click="SaveFileHandler" />
+                <MenuItem Header="Настройки">
+                    <MenuItem Header="Светлая" Click="SetAppearanceHandler" DataContext="Light" />
+                    <MenuItem Header="Темная" Click="SetAppearanceHandler" DataContext="Dark" />
+                </MenuItem>
+                <MenuItem Click="QuitHandler" Header="Выход" />
+            </MenuItem>
+            <MenuItem Header="Терминал">
+                <MenuItem Header="Новый терминал" Click="OpenTerminalHandler" />
             </MenuItem>
         </Menu>
         <StackPanel Height="25" DockPanel.Dock="Bottom">
@@ -38,26 +46,44 @@
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Margin="20, 5, 10, 5">
                     <TextBlock Text="as.txt" Foreground="White" />
-                </StackPanel>
+                </StackPanel>    
                 -->
+                <Border BorderThickness="0, 0, 0, 1" BorderBrush="White">
+                    <TextBlock Margin="5, 10, 0, 10" Width="150" Foreground="White" FontWeight="ExtraBlack" Text="Нет открытого проекта" />
+                </Border>
             </StackPanel>
             <DockPanel x:Name="editor" Background="LightGray" Width="1350">
-                <StackPanel DockPanel.Dock="Bottom" Background="DimGray" Height="165">
+                <StackPanel x:Name="terminal" DockPanel.Dock="Bottom" Visibility="Collapsed" Background="DimGray" Height="165">
+                    <StackPanel HorizontalAlignment="Right" Margin="5, 10, 0, 10" Orientation="Horizontal">
+                        <TextBlock Margin="0, 0, 25, 0" Text="🗑" Foreground="White" MouseUp="KillTerminalHandler" />
+                    </StackPanel>
+                    <StackPanel x:Name="executedCommands">
+
+                    </StackPanel>
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock Foreground="White" Text="PS C:\internet_lead\front198>" />
-                        <TextBox KeyUp="ExecuteCommandHandler" Background="Transparent" BorderThickness="0" Text="_" Width="250" Foreground="White" />
+                        <TextBlock x:Name="currentDir" Foreground="White" Margin="5, 5, 0, 5" Text="PS C:\internet_lead\front198>" />
+                        <TextBox x:Name="terminalInput" KeyUp="ExecuteCommandHandler" Margin="5, 5, 0, 5" Background="Transparent" BorderThickness="0" Width="250" Foreground="White" />
                     </StackPanel>
                 </StackPanel>
-                <TextBox x:Name="sourceCode" SpellCheck.IsEnabled="True" AcceptsReturn="True" MinLines="999" DockPanel.Dock="Top" Background="Transparent" BorderThickness="0" KeyUp="CodeHotKeysHandler">
-                    <SpellCheck.CustomDictionaries>
-                        <!--
-                        customwords.lex is included as a content file
-                        <sys:Uri>pack://application:,,,/Assets/jsparser.lex</sys:Uri>
-                        
-                        <sys:Uri>pack://application:,,,Assets/jsparser.lex</sys:Uri>
-                        -->
-                    </SpellCheck.CustomDictionaries>
-                </TextBox>
+                <TabControl x:Name="editorTabs" SelectedIndex="1" Background="Transparent" BorderThickness="0">
+                    <TabItem Header="0" Visibility="Collapsed">
+                        <TextBox x:Name="sourceCode" SpellCheck.IsEnabled="True" AcceptsReturn="True" MinLines="999" DockPanel.Dock="Top" Background="Transparent" BorderThickness="0" KeyUp="CodeHotKeysHandler">
+                            <SpellCheck.CustomDictionaries>
+                                <sys:Uri>pack://application:,,,/JsParser.lex</sys:Uri>
+                            </SpellCheck.CustomDictionaries>
+                        </TextBox>
+                    </TabItem>
+                    <TabItem Header="1" Visibility="Collapsed">
+                        <StackPanel HorizontalAlignment="Center">
+                            <Image Margin="0, 25, 0, 25" Width="250">
+                                <Image.Source>
+                                    <BitmapImage UriSource="https://cdn4.iconfinder.com/data/icons/logos-brands-7/512/visual_studio-128.png" />
+                                </Image.Source>
+                            </Image>
+                            <TextBlock Margin="0, 25, 0, 25" Text="Открыть проект     Ctrl + O" />
+                        </StackPanel>
+                    </TabItem>
+                </TabControl>
             </DockPanel>
         </StackPanel>
     </DockPanel>
