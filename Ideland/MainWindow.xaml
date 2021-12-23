@@ -10,13 +10,17 @@
     <DockPanel>
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="Файл">
-                <MenuItem Header="Открыть проект" Click="OpenProjectHandler" />
+                <MenuItem Header="Открыть проект" Click="OpenProjectHandler" DataContext="Проводник" />
                 <MenuItem Header="Сохранить файл" x:Name="saveFileMenuItem" IsEnabled="False" Click="SaveFileHandler" />
                 <MenuItem Header="Настройки">
                     <MenuItem Header="Светлая" Click="SetAppearanceHandler" DataContext="Light" />
                     <MenuItem Header="Темная" Click="SetAppearanceHandler" DataContext="Dark" />
                 </MenuItem>
+                <MenuItem x:Name="closeProjectBtn" Click="CloseProjectHandler" Visibility="Collapsed" Header="Закрыть проект" />
                 <MenuItem Click="QuitHandler" Header="Выход" />
+            </MenuItem>
+            <MenuItem Header="Правка">
+                <MenuItem Header="Найти в файлах" Click="FindInFilesHandler" />
             </MenuItem>
             <MenuItem Header="Терминал">
                 <MenuItem Header="Новый терминал" Click="OpenTerminalHandler" />
@@ -75,9 +79,9 @@
                     </TabItem>
                     <TabItem Header="1" Visibility="Collapsed">
                         <StackPanel HorizontalAlignment="Center">
-                            <Image Margin="0, 25, 0, 25" Width="250">
+                            <Image Margin="0, 75, 0, 75" Width="150">
                                 <Image.Source>
-                                    <BitmapImage UriSource="https://cdn4.iconfinder.com/data/icons/logos-brands-7/512/visual_studio-128.png" />
+                                    <BitmapImage UriSource="file:///C:/wpf_projects/Ideland/Ideland/Assets/vscode.png" />
                                 </Image.Source>
                             </Image>
                             <TextBlock Margin="0, 25, 0, 25" Text="Открыть проект     Ctrl + O" />

@@ -165,3 +165,5 @@ word-break
 word-spacing
 word-wrap
 z-index
+rgb
+calc

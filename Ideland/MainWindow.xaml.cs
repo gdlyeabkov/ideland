@@ -29,7 +29,10 @@ namespace Ideland
         public string selectedFile = "None";
         public string currentProject = "None";
         public TextBlock activeTab;
-
+        public bool isMatchCase = false;
+        public bool isMatchWords = false;
+        public bool isRegex = false;
+        public bool isMatchReplaceCase = false;
         public MainWindow()
         {
             InitializeComponent();
@@ -215,6 +218,22 @@ namespace Ideland
 
                 // editorTabs.SelectedIndex = 0;
 
+                string tabParam = ((MenuItem)(sender)).DataContext.ToString();
+                foreach (TextBlock tab in tabs.Children)
+                {
+                    if (tab.Text == "🗎")
+                    {
+                        activeTab = tab;
+                        tab.Foreground = System.Windows.Media.Brushes.White;
+                    }
+                    else
+                    {
+                        tab.Foreground = System.Windows.Media.Brushes.Gray;
+                    }
+                }
+
+                closeProjectBtn.Visibility = Visibility.Visible;
+
             }
         }
 
@@ -237,6 +256,23 @@ namespace Ideland
                 saveFileMenuItem.IsEnabled = true;
 
                 editorTabs.SelectedIndex = 0;
+
+                string file_name = openedFilePath.Split(new Char[] { '\\' })[openedFilePath.Split(new Char[] { '\\' }).Length - 1];
+                string file_ext = file_name.Split(new Char[] { '.' })[file_name.Split(new Char[] { '.' }).Length - 1];
+                sourceCode.SpellCheck.CustomDictionaries.Clear();
+                if (file_ext == "js")
+                {
+                    sourceCode.SpellCheck.CustomDictionaries.Add(new Uri(@"pack://application:,,,/JsParser.lex"));
+                }
+                else if (file_ext == "css")
+                {
+                    sourceCode.SpellCheck.CustomDictionaries.Add(new Uri(@"pack://application:,,,/CssParser.lex"));
+                }
+                else if (file_ext == "html")
+                {
+                    sourceCode.SpellCheck.CustomDictionaries.Add(new Uri(@"pack://application:,,,/HtmlParser.lex"));
+                }
+
 
             }
         }
@@ -313,18 +349,116 @@ namespace Ideland
                 if (currentProject != "None")
                 {
                     GetProjectFiles(currentProject);
+                } else
+                {
+                    Border notFoundProjectBorder = new Border();
+                    notFoundProjectBorder.BorderBrush = Brushes.White;
+                    notFoundProjectBorder.BorderThickness = new Thickness(0, 0, 0, 1);
+                    TextBlock notFoundProjectLabel = new TextBlock();
+                    notFoundProjectLabel.Text = "Нет открытого проекта";
+                    notFoundProjectLabel.Margin = new Thickness(5, 10, 0, 10);
+                    notFoundProjectLabel.FontWeight = FontWeights.ExtraBlack;
+                    notFoundProjectLabel.Width = 150;
+                    notFoundProjectLabel.Foreground = Brushes.White;
+                    notFoundProjectBorder.Child = notFoundProjectLabel;
+                    explorer.Children.Add(notFoundProjectBorder);
                 }
             }
             else if (currentTabName == "Поиск")
             {
+                StackPanel findAndReplace = new StackPanel();
+                findAndReplace.Orientation = Orientation.Horizontal;
+                TextBlock replaceToggler = new TextBlock();
+                replaceToggler.VerticalAlignment = VerticalAlignment.Center;
+                replaceToggler.Text = "⌄";
+                replaceToggler.FontWeight = FontWeights.ExtraBlack;
+                replaceToggler.Margin = new Thickness(5, 10, 0, 10);
+                replaceToggler.Foreground = System.Windows.Media.Brushes.White;
+                findAndReplace.Children.Add(replaceToggler);
+                replaceToggler.MouseUp += ToggleReplaceFieldHandler;
+                StackPanel inputFields = new StackPanel();
+                findAndReplace.Children.Add(inputFields);
                 TextBox search = new TextBox();
+                search.BorderThickness = new Thickness(0);
                 search.ToolTip = "Поиск";
-                search.Width = 125;
-                search.Margin = new Thickness(15, 10, 15, 10);
+                search.Width = 50;
+                search.Margin = new Thickness(5, 10, 0, 10);
                 search.Background = System.Windows.Media.Brushes.Black;
                 search.Foreground = System.Windows.Media.Brushes.White;
-                explorer.Children.Add(search);
+                StackPanel searchContainer = new StackPanel();
+                searchContainer.Orientation = Orientation.Horizontal;
+                searchContainer.Children.Add(search);
+                TextBlock inputFieldCapability = new TextBlock();
+                inputFieldCapability.ToolTip = "Учитывать регистр";
+                inputFieldCapability.VerticalAlignment = VerticalAlignment.Center;
+                inputFieldCapability.HorizontalAlignment = HorizontalAlignment.Center;
+                inputFieldCapability.FontWeight = FontWeights.ExtraBlack;
+                inputFieldCapability.Width = 20;
+                inputFieldCapability.Background = Brushes.Black;
+                inputFieldCapability.Text = "🗚";
+                inputFieldCapability.Foreground = Brushes.LightGray;
+                inputFieldCapability.DataContext = "matchCase";
+                inputFieldCapability.MouseUp += ToggleCapabilityHandler;
+                searchContainer.Children.Add(inputFieldCapability);
+                inputFieldCapability = new TextBlock();
+                inputFieldCapability.ToolTip = "Учитывать целые слова";
+                inputFieldCapability.VerticalAlignment = VerticalAlignment.Center;
+                inputFieldCapability.HorizontalAlignment = HorizontalAlignment.Center;
+                inputFieldCapability.FontWeight = FontWeights.ExtraBlack;
+                inputFieldCapability.Width = 20;
+                inputFieldCapability.Background = Brushes.Black;
+                inputFieldCapability.Text = "⍛";
+                inputFieldCapability.Foreground = Brushes.LightGray;
+                inputFieldCapability.DataContext = "matchWords";
+                inputFieldCapability.MouseUp += ToggleCapabilityHandler;
+                searchContainer.Children.Add(inputFieldCapability);
+                inputFieldCapability = new TextBlock();
+                inputFieldCapability.ToolTip = "Использовать регулярные выражения";
+                inputFieldCapability.VerticalAlignment = VerticalAlignment.Center;
+                inputFieldCapability.HorizontalAlignment = HorizontalAlignment.Center;
+                inputFieldCapability.FontWeight = FontWeights.ExtraBlack;
+                inputFieldCapability.Width = 20;
+                inputFieldCapability.Background = Brushes.Black;
+                inputFieldCapability.Text = "*";
+                inputFieldCapability.Foreground = Brushes.LightGray;
+                inputFieldCapability.DataContext = "regex";
+                inputFieldCapability.MouseUp += ToggleCapabilityHandler;
+                searchContainer.Children.Add(inputFieldCapability);
+                inputFields.Children.Add(searchContainer);
+                TextBox replace = new TextBox();
+                replace.BorderThickness = new Thickness(0);
+                replace.ToolTip = "Замена";
+                replace.Width = 90;
+                replace.Margin = new Thickness(5, 10, 0, 10);
+                replace.Background = System.Windows.Media.Brushes.Black;
+                replace.Foreground = System.Windows.Media.Brushes.White;
+                StackPanel replaceContainer = new StackPanel();
+                replaceContainer.Orientation = Orientation.Horizontal;
+                replaceContainer.Children.Add(replace);
+                inputFieldCapability = new TextBlock();
+                inputFieldCapability.ToolTip = "Учитывать регистр";
+                inputFieldCapability.VerticalAlignment = VerticalAlignment.Center;
+                inputFieldCapability.HorizontalAlignment = HorizontalAlignment.Center;
+                inputFieldCapability.FontWeight = FontWeights.ExtraBlack;
+                inputFieldCapability.Width = 20;
+                inputFieldCapability.Background = Brushes.Black;
+                inputFieldCapability.Text = "🗛";
+                inputFieldCapability.Foreground = Brushes.LightGray;
+                inputFieldCapability.DataContext = "matchReplaceCase";
+                inputFieldCapability.MouseUp += ToggleCapabilityHandler;
+                replaceContainer.Children.Add(inputFieldCapability);
+                inputFields.Children.Add(replaceContainer);
+                explorer.Children.Add(findAndReplace);
                 search.TextChanged += SearchFilesHandler;
+                replace.TextChanged += ReplaceFilesHandler;
+                if (currentProject == "None")
+                {
+                    TextBlock notOpenedProject = new TextBlock();
+                    notOpenedProject.Text = "Вы еще не открыли проект";
+                    notOpenedProject.Foreground = System.Windows.Media.Brushes.White;
+                    notOpenedProject.Margin = new Thickness(5, 5, 0, 5);
+                    explorer.Children.Add(notOpenedProject);
+                }
                 debugger.Speak("Рисую тело поиска");
             }
             else if (currentTabName == "Версии")
@@ -354,10 +488,14 @@ namespace Ideland
 
         private void SearchFilesHandler(object sender, TextChangedEventArgs e)
         {
-            if (currentProject != "None") {
+            if (currentProject != "None")
+            {
                 debugger.Speak("ищу файлы");
                 TextBox search = ((TextBox)(sender));
-                string keywords = search.Text.ToLower();
+
+                // string keywords = search.Text.ToLower();
+                string keywords = search.Text;
+
                 List<String> searchFiles = new List<String>();
                 string[] projectFiles = Directory.GetFiles(currentProject);
                 foreach (string projectFile in projectFiles)
@@ -367,7 +505,50 @@ namespace Ideland
                     {
                         myStream.Close();
                         string file_text = File.ReadAllText(projectFile);
-                        if (file_text.ToLower().Contains(keywords))
+                        if ((file_text.Contains(keywords) && isMatchCase) || (file_text.ToLower().Contains(keywords.ToLower()) && !isMatchCase))
+                        {
+                            searchFiles.Add(projectFile);
+                        }
+                    }
+                }
+                explorer.Children.RemoveRange(1, explorer.Children.Count);
+                foreach (string searchFile in searchFiles)
+                {
+                    StackPanel searchItem = new StackPanel();
+                    searchItem.Orientation = Orientation.Horizontal;
+                    TextBlock searchItemName = new TextBlock();
+                    searchItemName.Margin = new Thickness(20, 5, 10, 5);
+                    searchItemName.Foreground = System.Windows.Media.Brushes.White;
+                    searchItemName.Text = searchFile.Split(new char[] { '\\', '/' })[searchFile.Split(new char[] { '\\', '/' }).Length - 1];
+                    searchItem.Children.Add(searchItemName);
+                    explorer.Children.Add(searchItem);
+                    searchItem.DataContext = searchFile.ToString();
+                    // searchItem.MouseUp += OpenFileHandler;
+                    searchItem.MouseUp += OpenFileFromSearchHandler;
+                }
+            }
+        }
+
+        private void RefreshFindFilesHandler(object sender, RoutedEventArgs e)
+        {
+            if (currentProject != "None")
+            {
+                debugger.Speak("ищу файлы");
+                TextBlock capability = ((TextBlock)(sender));
+                TextBox search = ((TextBox)(((StackPanel)(capability.Parent)).Children[0]));
+                // string keywords = search.Text.ToLower();
+                string keywords = search.Text;
+
+                List<String> searchFiles = new List<String>();
+                string[] projectFiles = Directory.GetFiles(currentProject);
+                foreach (string projectFile in projectFiles)
+                {
+                    Stream myStream;
+                    if ((myStream = File.Open(projectFile, FileMode.Open)) != null)
+                    {
+                        myStream.Close();
+                        string file_text = File.ReadAllText(projectFile);
+                        if ((file_text.Contains(keywords) && isMatchCase) || (file_text.ToLower().Contains(keywords.ToLower()) && !isMatchCase))
                         {
                             searchFiles.Add(projectFile);
                         }
@@ -480,6 +661,415 @@ namespace Ideland
             this.Close();
         }
 
+        private void FindInFilesHandler(object sender, RoutedEventArgs e)
+        {
+            debugger.Speak("найти в файлах");
+            TextBlock currentTab = null;
+            foreach (TextBlock tab in tabs.Children)
+            {
+                if (tab.Text == "🔍")
+                {
+                    currentTab = tab;
+                    tab.Foreground = System.Windows.Media.Brushes.White;
+                } else
+                {
+                    tab.Foreground = System.Windows.Media.Brushes.Gray;
+                }
+            }
+            explorer.Children.RemoveRange(0, explorer.Children.Count);
+            StackPanel findAndReplace = new StackPanel();
+            findAndReplace.Orientation = Orientation.Horizontal;
+            TextBlock replaceToggler = new TextBlock();
+            replaceToggler.VerticalAlignment = VerticalAlignment.Center;
+            replaceToggler.Text = "⌄";
+            replaceToggler.FontWeight = FontWeights.ExtraBlack;
+            replaceToggler.Margin = new Thickness(5, 10, 0, 10);
+            replaceToggler.Foreground = System.Windows.Media.Brushes.White;
+            findAndReplace.Children.Add(replaceToggler);
+            replaceToggler.MouseUp += ToggleReplaceFieldHandler;
+            StackPanel inputFields = new StackPanel();
+            findAndReplace.Children.Add(inputFields);
+            TextBox search = new TextBox();
+            search.BorderThickness = new Thickness(0);
+            search.ToolTip = "Поиск";
+            search.Width = 50;
+            search.Margin = new Thickness(5, 10, 0, 10);
+            search.Background = System.Windows.Media.Brushes.Black;
+            search.Foreground = System.Windows.Media.Brushes.White;
+            StackPanel searchContainer = new StackPanel();
+            searchContainer.Orientation = Orientation.Horizontal;
+            searchContainer.Children.Add(search);
+            TextBlock inputFieldCapability = new TextBlock();
+            inputFieldCapability.ToolTip = "Учитывать регистр";
+            inputFieldCapability.VerticalAlignment = VerticalAlignment.Center;
+            inputFieldCapability.HorizontalAlignment = HorizontalAlignment.Center;
+            inputFieldCapability.FontWeight = FontWeights.ExtraBlack;
+            inputFieldCapability.Width = 20;
+            inputFieldCapability.Background = Brushes.Black;
+            inputFieldCapability.Text = "🗚";
+            inputFieldCapability.Foreground = Brushes.LightGray;
+            inputFieldCapability.DataContext = "matchCase";
+            inputFieldCapability.MouseUp += ToggleCapabilityHandler;
+            searchContainer.Children.Add(inputFieldCapability);
+            inputFieldCapability = new TextBlock();
+            inputFieldCapability.ToolTip = "Учитывать целые слова";
+            inputFieldCapability.VerticalAlignment = VerticalAlignment.Center;
+            inputFieldCapability.HorizontalAlignment = HorizontalAlignment.Center;
+            inputFieldCapability.FontWeight = FontWeights.ExtraBlack;
+            inputFieldCapability.Width = 20;
+            inputFieldCapability.Background = Brushes.Black;
+            inputFieldCapability.Text = "⍛";
+            inputFieldCapability.Foreground = Brushes.LightGray;
+            inputFieldCapability.DataContext = "matchWords";
+            inputFieldCapability.MouseUp += ToggleCapabilityHandler;
+            searchContainer.Children.Add(inputFieldCapability);
+            inputFieldCapability = new TextBlock();
+            inputFieldCapability.ToolTip = "Использовать регулярные выражения";
+            inputFieldCapability.VerticalAlignment = VerticalAlignment.Center;
+            inputFieldCapability.HorizontalAlignment = HorizontalAlignment.Center;
+            inputFieldCapability.FontWeight = FontWeights.ExtraBlack;
+            inputFieldCapability.Width = 20;
+            inputFieldCapability.Background = Brushes.Black;
+            inputFieldCapability.Text = "*";
+            inputFieldCapability.Foreground = Brushes.LightGray;
+            inputFieldCapability.DataContext = "regex";
+            inputFieldCapability.MouseUp += ToggleCapabilityHandler;
+            searchContainer.Children.Add(inputFieldCapability);
+            inputFields.Children.Add(searchContainer);
+            TextBox replace = new TextBox();
+            replace.BorderThickness = new Thickness(0);
+            replace.ToolTip = "Замена";
+            replace.Width = 90;
+            replace.Margin = new Thickness(5, 10, 0, 10);
+            replace.Background = System.Windows.Media.Brushes.Black;
+            replace.Foreground = System.Windows.Media.Brushes.White;
+            StackPanel replaceContainer = new StackPanel();
+            replaceContainer.Orientation = Orientation.Horizontal;
+            replaceContainer.Children.Add(replace);
+            inputFieldCapability = new TextBlock();
+            inputFieldCapability.ToolTip = "Учитывать регистр";
+            inputFieldCapability.VerticalAlignment = VerticalAlignment.Center;
+            inputFieldCapability.HorizontalAlignment = HorizontalAlignment.Center;
+            inputFieldCapability.FontWeight = FontWeights.ExtraBlack;
+            inputFieldCapability.Width = 20;
+            inputFieldCapability.Background = Brushes.Black;
+            inputFieldCapability.Text = "🗛";
+            inputFieldCapability.Foreground = Brushes.LightGray;
+            inputFieldCapability.DataContext = "matchReplaceCase";
+            inputFieldCapability.MouseUp += ToggleCapabilityHandler;
+            replaceContainer.Children.Add(inputFieldCapability);
+            inputFields.Children.Add(replaceContainer);
+            explorer.Children.Add(findAndReplace);
+            search.TextChanged += SearchFilesHandler;
+            replace.TextChanged += ReplaceFilesHandler;
+            if (currentProject == "None")
+            {
+                TextBlock notOpenedProject = new TextBlock();
+                notOpenedProject.Text = "Вы еще не открыли проект";
+                notOpenedProject.Foreground = System.Windows.Media.Brushes.White;
+                notOpenedProject.Margin = new Thickness(5, 5, 0, 5);
+                explorer.Children.Add(notOpenedProject);
+            }
+            activeTab = currentTab;
+
+        }
+
+        private void CloseProjectHandler(object sender, RoutedEventArgs e)
+        {
+            currentProject = "None";
+
+            closeProjectBtn.Visibility = Visibility.Collapsed;
+
+            explorer.Children.RemoveRange(0, explorer.Children.Count);
+            if (activeTab.Text == "🗎")
+            {
+                debugger.Speak("Рисую тело проводника");
+                if (currentProject != "None")
+                {
+                    GetProjectFiles(currentProject);
+                }
+                else
+                {
+                    Border notFoundProjectBorder = new Border();
+                    notFoundProjectBorder.BorderBrush = Brushes.White;
+                    notFoundProjectBorder.BorderThickness = new Thickness(0, 0, 0, 1);
+                    TextBlock notFoundProjectLabel = new TextBlock();
+                    notFoundProjectLabel.Text = "Нет открытого проекта";
+                    notFoundProjectLabel.Margin = new Thickness(5, 10, 0, 10);
+                    notFoundProjectLabel.FontWeight = FontWeights.ExtraBlack;
+                    notFoundProjectLabel.Width = 150;
+                    notFoundProjectLabel.Foreground = Brushes.White;
+                    notFoundProjectBorder.Child = notFoundProjectLabel;
+                    explorer.Children.Add(notFoundProjectBorder);
+                }
+            }
+            else if (activeTab.Text == "🔍")
+            {
+                StackPanel findAndReplace = new StackPanel();
+                findAndReplace.Orientation = Orientation.Horizontal;
+                TextBlock replaceToggler = new TextBlock();
+                replaceToggler.VerticalAlignment = VerticalAlignment.Center;
+                replaceToggler.Text = "⌄";
+                replaceToggler.FontWeight = FontWeights.ExtraBlack;
+                replaceToggler.Margin = new Thickness(5, 10, 0, 10);
+                replaceToggler.Foreground = System.Windows.Media.Brushes.White;
+                findAndReplace.Children.Add(replaceToggler);
+                replaceToggler.MouseUp += ToggleReplaceFieldHandler;
+                StackPanel inputFields = new StackPanel();
+                findAndReplace.Children.Add(inputFields);
+                TextBox search = new TextBox();
+                search.BorderThickness = new Thickness(0);
+                search.ToolTip = "Поиск";
+                search.Width = 50;
+                search.Margin = new Thickness(5, 10, 0, 10);
+                search.Background = System.Windows.Media.Brushes.Black;
+                search.Foreground = System.Windows.Media.Brushes.White;
+                StackPanel searchContainer = new StackPanel();
+                searchContainer.Orientation = Orientation.Horizontal;
+                searchContainer.Children.Add(search);
+                TextBlock inputFieldCapability = new TextBlock();
+                inputFieldCapability.ToolTip = "Учитывать регистр";
+                inputFieldCapability.VerticalAlignment = VerticalAlignment.Center;
+                inputFieldCapability.HorizontalAlignment = HorizontalAlignment.Center;
+                inputFieldCapability.FontWeight = FontWeights.ExtraBlack;
+                inputFieldCapability.Width = 20;
+                inputFieldCapability.Background = Brushes.Black;
+                inputFieldCapability.Text = "🗚";
+                inputFieldCapability.Foreground = Brushes.LightGray;
+                inputFieldCapability.DataContext = "matchCase";
+                inputFieldCapability.MouseUp += ToggleCapabilityHandler;
+                searchContainer.Children.Add(inputFieldCapability);
+                inputFieldCapability = new TextBlock();
+                inputFieldCapability.ToolTip = "Учитывать целые слова";
+                inputFieldCapability.VerticalAlignment = VerticalAlignment.Center;
+                inputFieldCapability.HorizontalAlignment = HorizontalAlignment.Center;
+                inputFieldCapability.FontWeight = FontWeights.ExtraBlack;
+                inputFieldCapability.Width = 20;
+                inputFieldCapability.Background = Brushes.Black;
+                inputFieldCapability.Text = "⍛";
+                inputFieldCapability.Foreground = Brushes.LightGray;
+                inputFieldCapability.DataContext = "matchWords";
+                inputFieldCapability.MouseUp += ToggleCapabilityHandler;
+                searchContainer.Children.Add(inputFieldCapability);
+                inputFieldCapability = new TextBlock();
+                inputFieldCapability.ToolTip = "Использовать регулярные выражения";
+                inputFieldCapability.VerticalAlignment = VerticalAlignment.Center;
+                inputFieldCapability.HorizontalAlignment = HorizontalAlignment.Center;
+                inputFieldCapability.FontWeight = FontWeights.ExtraBlack;
+                inputFieldCapability.Width = 20;
+                inputFieldCapability.Background = Brushes.Black;
+                inputFieldCapability.Text = "*";
+                inputFieldCapability.Foreground = Brushes.LightGray;
+                inputFieldCapability.DataContext = "regex";
+                inputFieldCapability.MouseUp += ToggleCapabilityHandler;
+                searchContainer.Children.Add(inputFieldCapability);
+                inputFields.Children.Add(searchContainer);
+                TextBox replace = new TextBox();
+                replace.BorderThickness = new Thickness(0);
+                replace.ToolTip = "Замена";
+                replace.Width = 90;
+                replace.Margin = new Thickness(5, 10, 0, 10);
+                replace.Background = System.Windows.Media.Brushes.Black;
+                replace.Foreground = System.Windows.Media.Brushes.White;
+                StackPanel replaceContainer = new StackPanel();
+                replaceContainer.Orientation = Orientation.Horizontal;
+                replaceContainer.Children.Add(replace);
+                inputFieldCapability = new TextBlock();
+                inputFieldCapability.ToolTip = "Учитывать регистр";
+                inputFieldCapability.VerticalAlignment = VerticalAlignment.Center;
+                inputFieldCapability.HorizontalAlignment = HorizontalAlignment.Center;
+                inputFieldCapability.FontWeight = FontWeights.ExtraBlack;
+                inputFieldCapability.Width = 20;
+                inputFieldCapability.Background = Brushes.Black;
+                inputFieldCapability.Text = "🗛";
+                inputFieldCapability.Foreground = Brushes.LightGray;
+                inputFieldCapability.DataContext = "matchReplaceCase";
+                inputFieldCapability.MouseUp += ToggleCapabilityHandler;
+                replaceContainer.Children.Add(inputFieldCapability);
+                inputFields.Children.Add(replaceContainer);
+                explorer.Children.Add(findAndReplace);
+                search.TextChanged += SearchFilesHandler;
+                replace.TextChanged += ReplaceFilesHandler;
+                if (currentProject == "None")
+                {
+                    TextBlock notOpenedProject = new TextBlock();
+                    notOpenedProject.Text = "Вы еще не открыли проект";
+                    notOpenedProject.Foreground = System.Windows.Media.Brushes.White;
+                    notOpenedProject.Margin = new Thickness(5, 5, 0, 5);
+                    explorer.Children.Add(notOpenedProject);
+                }
+                debugger.Speak("Рисую тело поиска");
+            }
+            else if (activeTab.Text == "☌")
+            {
+                debugger.Speak("Рисую тело версий");
+            }
+            else if (activeTab.Text == "🐞")
+            {
+                debugger.Speak("Рисую тело отладки");
+            }
+            else if (activeTab.Text == "⧉")
+            {
+                TextBox search = new TextBox();
+                search.ToolTip = "Найдите расширения в магазине";
+                search.Width = 125;
+                search.Margin = new Thickness(15, 10, 15, 10);
+                search.Background = System.Windows.Media.Brushes.Black;
+                search.Foreground = System.Windows.Media.Brushes.White;
+                explorer.Children.Add(search);
+                search.TextChanged += SearchExtensionsHandler;
+                debugger.Speak("Рисую тело расширений");
+            }
+
+        }
+
+        private void ToggleReplaceFieldHandler(object sender, RoutedEventArgs e)
+        {
+            TextBlock replaceToggler = ((TextBlock)(sender));
+            if (replaceToggler.Text == ">") {
+                replaceToggler.Text = "⌄";
+                TextBox replace = new TextBox();
+                replace.BorderThickness = new Thickness(0);
+                replace.ToolTip = "Замена";
+                replace.Width = 90;
+                replace.Margin = new Thickness(5, 10, 0, 10);
+                replace.Background = System.Windows.Media.Brushes.Black;
+                replace.Foreground = System.Windows.Media.Brushes.White;
+                StackPanel replaceContainer = new StackPanel();
+                replaceContainer.Orientation = Orientation.Horizontal;
+                replaceContainer.Children.Add(replace);
+                TextBlock inputFieldCapability = new TextBlock();
+                inputFieldCapability.ToolTip = "Учитывать регистр";
+                inputFieldCapability.VerticalAlignment = VerticalAlignment.Center;
+                inputFieldCapability.HorizontalAlignment = HorizontalAlignment.Center;
+                inputFieldCapability.FontWeight = FontWeights.ExtraBlack;
+                inputFieldCapability.Width = 20;
+                inputFieldCapability.Background = Brushes.Black;
+                inputFieldCapability.Text = "🗛";
+                inputFieldCapability.Foreground = Brushes.LightGray;
+                inputFieldCapability.DataContext = "matchReplaceCase";
+                inputFieldCapability.MouseUp += ToggleCapabilityHandler;
+                replaceContainer.Children.Add(inputFieldCapability);
+                ((StackPanel)(((StackPanel)(replaceToggler.Parent)).Children[1])).Children.Add(replaceContainer);
+                replace.TextChanged += ReplaceFilesHandler;
+
+            }
+            else if (replaceToggler.Text == "⌄")
+            {
+                replaceToggler.Text = ">";
+                ((StackPanel)(((StackPanel)(replaceToggler.Parent)).Children[1])).Children.RemoveAt(1);
+            }
+        }
+
+        private void ReplaceFilesHandler(object sender, RoutedEventArgs e)
+        {
+            debugger.Speak("Заменяю содержимое файлов");
+        }
+
+        private void ToggleCapabilityHandler(object sender, RoutedEventArgs e)
+        {
+            TextBlock capability = ((TextBlock)(sender));
+            string capabilityParam = capability.DataContext.ToString();
+            if (capabilityParam == "matchCase")
+            {
+                if (capability.Foreground == Brushes.White)
+                {
+                    isMatchCase = false;
+                    capability.Foreground = Brushes.LightGray;
+                }
+                else if (capability.Foreground == Brushes.LightGray)
+                {
+                    isMatchCase = true;
+                    capability.Foreground = Brushes.White;
+                }
+
+            }
+            else if (capabilityParam == "matchWords")
+            {
+                if (capability.Foreground == Brushes.White)
+                {
+                    isMatchWords = false;
+                    capability.Foreground = Brushes.LightGray;
+                }
+                else if (capability.Foreground == Brushes.LightGray)
+                {
+                    isMatchWords = true;
+                    capability.Foreground = Brushes.White;
+                }
+
+            }
+            else if (capabilityParam == "regex")
+            {
+                if (capability.Foreground == Brushes.White)
+                {
+                    isRegex = false;
+                    capability.Foreground = Brushes.LightGray;
+                }
+                else if (capability.Foreground == Brushes.LightGray)
+                {
+                    isRegex = true;
+                    capability.Foreground = Brushes.White;
+                }
+
+            }
+            else if (capabilityParam == "matchReplaceCase")
+            {
+                if (capability.Foreground == Brushes.White)
+                {
+                    isMatchReplaceCase = false;
+                    capability.Foreground = Brushes.LightGray;
+                }
+                else if (capability.Foreground == Brushes.LightGray)
+                {
+                    isMatchReplaceCase = true;
+                    capability.Foreground = Brushes.White;
+                }
+
+            }
+            debugger.Speak("переключаю возможность");
+
+            if (currentProject != "None")
+            {
+                debugger.Speak("ищу файлы");
+                capability = ((TextBlock)(sender));
+                TextBox search = ((TextBox)(((StackPanel)(capability.Parent)).Children[0]));
+                // string keywords = search.Text.ToLower();
+                string keywords = search.Text;
+
+                List<String> searchFiles = new List<String>();
+                string[] projectFiles = Directory.GetFiles(currentProject);
+                foreach (string projectFile in projectFiles)
+                {
+                    Stream myStream;
+                    if ((myStream = File.Open(projectFile, FileMode.Open)) != null)
+                    {
+                        myStream.Close();
+                        string file_text = File.ReadAllText(projectFile);
+                        if ((file_text.Contains(keywords) && isMatchCase) || (file_text.ToLower().Contains(keywords.ToLower()) && !isMatchCase))
+                        {
+                            searchFiles.Add(projectFile);
+                        }
+                    }
+                }
+                explorer.Children.RemoveRange(1, explorer.Children.Count);
+                foreach (string searchFile in searchFiles)
+                {
+                    StackPanel searchItem = new StackPanel();
+                    searchItem.Orientation = Orientation.Horizontal;
+                    TextBlock searchItemName = new TextBlock();
+                    searchItemName.Margin = new Thickness(20, 5, 10, 5);
+                    searchItemName.Foreground = System.Windows.Media.Brushes.White;
+                    searchItemName.Text = searchFile.Split(new char[] { '\\', '/' })[searchFile.Split(new char[] { '\\', '/' }).Length - 1];
+                    searchItem.Children.Add(searchItemName);
+                    explorer.Children.Add(searchItem);
+                    searchItem.DataContext = searchFile.ToString();
+                    // searchItem.MouseUp += OpenFileHandler;
+                    searchItem.MouseUp += OpenFileFromSearchHandler;
+                }
+            }
+
+        }
+        
 
     }
 }
