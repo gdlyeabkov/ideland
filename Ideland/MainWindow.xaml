@@ -76,6 +76,7 @@
                                 <sys:Uri>pack://application:,,,/JsParser.lex</sys:Uri>
                             </SpellCheck.CustomDictionaries>
                         </TextBox>
+                        <!---->
                     </TabItem>
                     <TabItem Header="1" Visibility="Collapsed">
                         <StackPanel HorizontalAlignment="Center">

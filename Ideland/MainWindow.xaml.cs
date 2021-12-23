@@ -39,6 +39,7 @@ namespace Ideland
 
             debugger = new SpeechSynthesizer();
             activeTab = startActiveTab;
+            //  JavaScript
 
         }
 
@@ -77,6 +78,10 @@ namespace Ideland
         }
 
         private void GetFolderFiles(string folderDir, StackPanel folder) {
+
+            string workDir = folderDir.Substring(currentProject.Length);
+            int tabulation = workDir.Split(new Char[] { '\\' }).Length;
+
             string[] projectFiles = Directory.GetFileSystemEntries(folderDir);
             foreach (string projectFile in projectFiles)
             {
@@ -85,7 +90,8 @@ namespace Ideland
                 if (File.Exists(projectFile))
                 {
                     TextBlock projectItemIcon = new TextBlock();
-                    projectItemIcon.Margin = new Thickness(40, 5, 10, 5);
+                    // projectItemIcon.Margin = new Thickness(40, 5, 10, 5);
+                    projectItemIcon.Margin = new Thickness(20 * tabulation, 5, 10, 5);
                     projectItemIcon.Foreground = System.Windows.Media.Brushes.White;
                     string onlyFileName = projectFile.Split(new char[] { '\\', '/' })[projectFile.Split(new char[] { '\\', '/' }).Length - 1];
                     if (onlyFileName.Split(new char[] { '.' })[onlyFileName.Split(new char[] { '.' }).Length - 1] == "cs")
@@ -107,7 +113,10 @@ namespace Ideland
                 else if (Directory.Exists(projectFile))
                 {
                     TextBlock projectItemIcon = new TextBlock();
-                    projectItemIcon.Margin = new Thickness(40, 5, 10, 5);
+
+                    // projectItemIcon.Margin = new Thickness(40, 5, 10, 5);
+                    projectItemIcon.Margin = new Thickness(20 * tabulation, 5, 10, 5);
+
                     projectItemIcon.Foreground = System.Windows.Media.Brushes.White;
                     projectItemIcon.Text = ">";
                     
@@ -116,12 +125,19 @@ namespace Ideland
 
                 }
                 TextBlock projectItemName = new TextBlock();
-                projectItemName.Margin = new Thickness(20, 5, 10, 5);
+                // projectItemName.Margin = new Thickness(20, 5, 10, 5);
+                projectItemName.Margin = new Thickness(40, 5, 10, 5);
                 projectItemName.Foreground = System.Windows.Media.Brushes.White;
                 projectItemName.Text = projectFile.Split(new char[] { '\\', '/' })[projectFile.Split(new char[] { '\\', '/' }).Length - 1];
                 projectItem.Children.Add(projectItemName);
+
                 // explorer.Children.Insert(1, projectItem);
-                ((StackPanel)(folder.Parent)).Children.Add(projectItem);
+                // ((StackPanel)(folder.Parent)).Children.Add(projectItem);
+                // ((StackPanel)(folder.Parent)).Children.Insert(((StackPanel)(folder.Parent)).Children.IndexOf(folder) + 1, projectItem);
+                StackPanel mock = new StackPanel();
+                mock.Children.Add(projectItem);
+                ((StackPanel)(folder.Parent)).Children.Insert(((StackPanel)(folder.Parent)).Children.IndexOf(folder) + 1, mock);
+
                 projectItem.DataContext = projectFile.ToString();
                 if (File.Exists(projectFile))
                 {
@@ -593,7 +609,10 @@ namespace Ideland
             else if (folderIconSource == "⌄")
             {
                 folderIcon.Text = ">";
-                ((StackPanel)(folder.Parent)).Children.RemoveRange(1, folder.Children.Count);
+                
+                // ((StackPanel)(folder.Parent)).Children.RemoveRange(1, folder.Children.Count);
+                ((StackPanel)(folder.Parent)).Children.RemoveRange(1, ((StackPanel)(folder.Parent)).Children.Count);
+            
             }
         }
 
