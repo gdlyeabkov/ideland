@@ -256,10 +256,11 @@ namespace Ideland
         private void OpenFileHandler(object sender, RoutedEventArgs e)
         {
             StackPanel openedFile = ((StackPanel)(sender));
-            foreach (StackPanel projectFile in explorer.Children)
+            /*foreach (StackPanel projectFile in explorer.Children)
             {
                 projectFile.Background = System.Windows.Media.Brushes.Transparent;
-            }
+            }*/
+            UnSelectFiles(explorer);
             openedFile.Background = System.Windows.Media.Brushes.SkyBlue;
             string openedFilePath = openedFile.DataContext.ToString();
             Stream myStream;
@@ -289,6 +290,15 @@ namespace Ideland
                     sourceCode.SpellCheck.CustomDictionaries.Add(new Uri(@"pack://application:,,,/HtmlParser.lex"));
                 }
 
+                lines.Children.Clear();
+                for (int lineIdx = 0; lineIdx < file_text.Split(new Char[] { '\n' }).Length; lineIdx++)
+                {
+                    TextBlock newLine = new TextBlock();
+                    newLine.FontWeight = FontWeights.ExtraBlack;
+                    newLine.Foreground = Brushes.Blue;
+                    newLine.Text = (lineIdx + 1).ToString();
+                    lines.Children.Add(newLine);
+                }
 
             }
         }
@@ -316,17 +326,26 @@ namespace Ideland
                     SaveFile();
                 }
             }
-            /* else {
+            else {
                 // просто ввод кода
-                string[] literalSeparators = sourceCode.Text.Split(new Char[] { ' ', '\n' });
+                /*string[] literalSeparators = sourceCode.Text.Split(new Char[] { ' ', '\n' });
                 foreach (string literal in literalSeparators)
                 {
                     if (literal == "<html>" || literal == "<head>" || literal == "<body>")
                     {
-                        
+
                     }
+                }*/
+                lines.Children.Clear();
+                for (int lineIdx = 0; lineIdx < sourceCode.LineCount; lineIdx++)
+                {
+                    TextBlock newLine = new TextBlock();
+                    newLine.FontWeight = FontWeights.ExtraBlack;
+                    newLine.Foreground = Brushes.Blue;
+                    newLine.Text = (lineIdx + 1).ToString();
+                    lines.Children.Add(newLine);
                 }
-            }*/
+            }
         }
 
         private void SaveFileHandler(object sender, RoutedEventArgs e)
@@ -342,8 +361,8 @@ namespace Ideland
             {
                 using (StreamWriter sw = new StreamWriter(myStream))
                 {
-                    myStream.Close();
                     sw.Write(sourceCode.Text);
+                    // myStream.Close();
                     // sw.Close();
                 }
             }
@@ -1089,6 +1108,25 @@ namespace Ideland
 
         }
         
+        private void UnSelectFiles(StackPanel folder)
+        {
+            foreach (UIElement projectFile in folder.Children)
+            {
+                if (projectFile is StackPanel)
+                {
+                    ((StackPanel)(projectFile)).Background = System.Windows.Media.Brushes.Transparent;
+                    if (folder.Children.Count >= 1)
+                    {
+                        UnSelectFiles(((StackPanel)(projectFile)));
+                    } else {
+                        return;
+                    }
+                } else
+                {
+                    return;
+                }
+            }
+        }
 
     }
 }

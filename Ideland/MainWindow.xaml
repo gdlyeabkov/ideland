@@ -71,11 +71,18 @@
                 </StackPanel>
                 <TabControl x:Name="editorTabs" SelectedIndex="1" Background="Transparent" BorderThickness="0">
                     <TabItem Header="0" Visibility="Collapsed">
-                        <TextBox x:Name="sourceCode" SpellCheck.IsEnabled="True" AcceptsReturn="True" MinLines="999" DockPanel.Dock="Top" Background="Transparent" BorderThickness="0" KeyUp="CodeHotKeysHandler">
-                            <SpellCheck.CustomDictionaries>
-                                <sys:Uri>pack://application:,,,/JsParser.lex</sys:Uri>
-                            </SpellCheck.CustomDictionaries>
-                        </TextBox>
+                        <ScrollViewer VerticalScrollBarVisibility="Visible">
+                            <StackPanel Margin="0, 20, 0, 0" Orientation="Horizontal">
+                                <StackPanel x:Name="lines" Margin="10, 2, 10, 0">
+                                    <TextBlock Text="1" />
+                                </StackPanel>
+                                <TextBox x:Name="sourceCode" SpellCheck.IsEnabled="True" AcceptsReturn="True" MinLines="999" DockPanel.Dock="Top" Background="Transparent" BorderThickness="0" KeyUp="CodeHotKeysHandler">
+                                    <SpellCheck.CustomDictionaries>
+                                        <sys:Uri>pack://application:,,,/JsParser.lex</sys:Uri>
+                                    </SpellCheck.CustomDictionaries>
+                                </TextBox>
+                            </StackPanel>
+                        </ScrollViewer>
                         <!---->
                     </TabItem>
                     <TabItem Header="1" Visibility="Collapsed">
