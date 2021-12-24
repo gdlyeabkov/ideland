@@ -56,7 +56,7 @@
                     <TextBlock Margin="5, 10, 0, 10" Width="150" Foreground="White" FontWeight="ExtraBlack" Text="Нет открытого проекта" />
                 </Border>
             </StackPanel>
-            <DockPanel x:Name="editor" Background="LightGray" Width="1350">
+            <DockPanel x:Name="editor" Background="LightGray" Width="1340">
                 <StackPanel x:Name="terminal" DockPanel.Dock="Bottom" Visibility="Collapsed" Background="DimGray" Height="165">
                     <StackPanel HorizontalAlignment="Right" Margin="5, 10, 0, 10" Orientation="Horizontal">
                         <TextBlock Margin="0, 0, 25, 0" Text="🗑" Foreground="White" MouseUp="KillTerminalHandler" />
@@ -69,33 +69,63 @@
                         <TextBox x:Name="terminalInput" KeyUp="ExecuteCommandHandler" Margin="5, 5, 0, 5" Background="Transparent" BorderThickness="0" Width="250" Foreground="White" />
                     </StackPanel>
                 </StackPanel>
-                <TabControl x:Name="editorTabs" SelectedIndex="1" Background="Transparent" BorderThickness="0">
-                    <TabItem Header="0" Visibility="Collapsed">
-                        <ScrollViewer VerticalScrollBarVisibility="Visible">
-                            <StackPanel Margin="0, 20, 0, 0" Orientation="Horizontal">
-                                <StackPanel x:Name="lines" Margin="10, 2, 10, 0">
-                                    <TextBlock Text="1" />
-                                </StackPanel>
-                                <TextBox x:Name="sourceCode" SpellCheck.IsEnabled="True" AcceptsReturn="True" MinLines="999" DockPanel.Dock="Top" Background="Transparent" BorderThickness="0" KeyUp="CodeHotKeysHandler" SelectionChanged="EnterCodeSelectionHandler">
-                                    <SpellCheck.CustomDictionaries>
-                                        <sys:Uri>pack://application:,,,/JsParser.lex</sys:Uri>
-                                    </SpellCheck.CustomDictionaries>
-                                </TextBox>
-                            </StackPanel>
-                        </ScrollViewer>
-                        <!---->
-                    </TabItem>
-                    <TabItem Header="1" Visibility="Collapsed">
-                        <StackPanel HorizontalAlignment="Center">
-                            <Image Margin="0, 75, 0, 75" Width="150">
-                                <Image.Source>
-                                    <BitmapImage UriSource="file:///C:/wpf_projects/Ideland/Ideland/Assets/vscode.png" />
-                                </Image.Source>
-                            </Image>
-                            <TextBlock Margin="0, 25, 0, 25" Text="Открыть проект     Ctrl + O" />
+                <StackPanel>
+                    <StackPanel Margin="0, 0, 0, 0" Height="35" Background="DimGray" Orientation="Horizontal">
+                        <TabControl x:Name="openedFiles" SelectionChanged="ToggleFileHandler" Background="Transparent" BorderThickness="0">
+                            <!--
+                            <TabItem Header="index.html" Height="35" Background="Blue">
+                                
+                            </TabItem>
+                            <TabItem Header="style.css" Height="35" Background="Gray" Foreground="White">
+
+                            </TabItem>
+                            <TabItem Header="main.js" Height="35" Background="Gray" Foreground="White">
+
+                            </TabItem>
+                            -->
+                        </TabControl>
+                        <StackPanel x:Name="startSiteBtn" VerticalAlignment="Center" Orientation="Horizontal" IsEnabled="False" MouseUp="StartSiteHandler">
+                            <TextBlock VerticalAlignment="Center" Margin="15, 0, 0, 0" FontSize="18" Foreground="Gray" Text="▶" MouseUp="StartSiteHandler" />
+                            <TextBlock VerticalAlignment="Center" Margin="15, 0, 0, 0" Foreground="Gray" IsEnabled="False" Text="Запустить сайт" />
                         </StackPanel>
-                    </TabItem>
-                </TabControl>
+                    </StackPanel>
+                    <TabControl x:Name="editorTabs" SelectedIndex="0" Background="Transparent" BorderThickness="0">
+                        <TabItem Header="0" Visibility="Collapsed">
+                            <StackPanel HorizontalAlignment="Center">
+                                <Image Margin="0, 75, 0, 75" Width="150">
+                                    <Image.Source>
+                                        <BitmapImage UriSource="file:///C:/wpf_projects/Ideland/Ideland/Assets/vscode.png" />
+                                    </Image.Source>
+                                </Image>
+                                <TabControl x:Name="hotkeys" BorderThickness="0" Background="Transparent">
+                                    <TabItem Visibility="Collapsed" Header="empty">
+                                        <TextBlock Margin="0, 25, 0, 25" Text="Открыть проект     Ctrl + O" />
+                                    </TabItem>
+                                    <TabItem Visibility="Collapsed" Header="opened project">
+                                        <TextBlock Margin="0, 25, 0, 25" Text="Перейти к поиску     Ctrl + Shift + F" />
+                                    </TabItem>
+                                </TabControl>
+                            </StackPanel>
+                        </TabItem>
+                        <TabItem Header="1" Visibility="Collapsed">
+                            <ScrollViewer VerticalScrollBarVisibility="Visible">
+                                <StackPanel>
+                                    <StackPanel Margin="0, 20, 0, 0" Orientation="Horizontal">
+                                        <StackPanel x:Name="lines" Margin="10, 2, 10, 0">
+                                            <TextBlock Text="1" />
+                                        </StackPanel>
+                                        <TextBox x:Name="sourceCode" SpellCheck.IsEnabled="True" AcceptsReturn="True" MinLines="999" DockPanel.Dock="Top" Background="Transparent" BorderThickness="0" KeyUp="CodeHotKeysHandler" SelectionChanged="EnterCodeSelectionHandler">
+                                            <SpellCheck.CustomDictionaries>
+                                                <sys:Uri>pack://application:,,,/JsParser.lex</sys:Uri>
+                                            </SpellCheck.CustomDictionaries>
+                                        </TextBox>
+                                    </StackPanel>
+                                </StackPanel>
+                            </ScrollViewer>
+                            <!---->
+                        </TabItem>
+                    </TabControl>
+                </StackPanel>
             </DockPanel>
         </StackPanel>
     </DockPanel>

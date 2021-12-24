@@ -17,6 +17,7 @@ using System.Speech.Synthesis;
 using System.IO;
 using Microsoft.Win32;
 using System.Text.RegularExpressions;
+using System.Windows.Controls.Primitives;
 
 namespace Ideland
 {
@@ -129,7 +130,7 @@ namespace Ideland
                 }
                 TextBlock projectItemName = new TextBlock();
                 // projectItemName.Margin = new Thickness(20, 5, 10, 5);
-                projectItemName.Margin = new Thickness(40, 5, 10, 5);
+                projectItemName.Margin = new Thickness(10, 5, 10, 5);
                 projectItemName.Foreground = System.Windows.Media.Brushes.White;
                 projectItemName.Text = projectFile.Split(new char[] { '\\', '/' })[projectFile.Split(new char[] { '\\', '/' }).Length - 1];
                 projectItem.Children.Add(projectItemName);
@@ -199,7 +200,7 @@ namespace Ideland
                     projectItem.Children.Add(projectItemIcon);
                 }
                 projectItemName = new TextBlock();
-                projectItemName.Margin = new Thickness(20, 5, 10, 5);
+                projectItemName.Margin = new Thickness(10, 5, 10, 5);
                 projectItemName.Foreground = System.Windows.Media.Brushes.White;
                 projectItemName.Text = projectFile.Split(new char[] { '\\', '/' })[projectFile.Split(new char[] { '\\', '/' }).Length - 1];
                 projectItem.Children.Add(projectItemName);
@@ -253,6 +254,18 @@ namespace Ideland
 
                 closeProjectBtn.Visibility = Visibility.Visible;
 
+                bool isIndexHTMLExists = File.Exists(currentProject + @"\index.html");
+                if (isIndexHTMLExists)
+                {
+                    startSiteBtn.IsEnabled = true;
+                    foreach (TextBlock startSiteBtnItem in startSiteBtn.Children)
+                    {
+                        startSiteBtnItem.Foreground = Brushes.MediumSpringGreen;
+                    }
+                }
+
+                hotkeys.SelectedIndex = 1;
+
             }
         }
 
@@ -267,43 +280,94 @@ namespace Ideland
             openedFile.Background = System.Windows.Media.Brushes.SkyBlue;
             string openedFilePath = openedFile.DataContext.ToString();
             Stream myStream;
-            if ((myStream = File.Open(openedFilePath, FileMode.Open)) != null)
-            {
-                myStream.Close();
-                selectedFile = openedFilePath;
-                string file_text = File.ReadAllText(openedFilePath);
-                sourceCode.Text = file_text;
-                saveFileMenuItem.IsEnabled = true;
-
-                editorTabs.SelectedIndex = 0;
-
-                string file_name = openedFilePath.Split(new Char[] { '\\' })[openedFilePath.Split(new Char[] { '\\' }).Length - 1];
-                string file_ext = file_name.Split(new Char[] { '.' })[file_name.Split(new Char[] { '.' }).Length - 1];
-                sourceCode.SpellCheck.CustomDictionaries.Clear();
-                if (file_ext == "js")
-                {
-                    sourceCode.SpellCheck.CustomDictionaries.Add(new Uri(@"pack://application:,,,/JsParser.lex"));
-                }
-                else if (file_ext == "css")
-                {
-                    sourceCode.SpellCheck.CustomDictionaries.Add(new Uri(@"pack://application:,,,/CssParser.lex"));
-                }
-                else if (file_ext == "html")
-                {
-                    sourceCode.SpellCheck.CustomDictionaries.Add(new Uri(@"pack://application:,,,/HtmlParser.lex"));
-                }
-
-                lines.Children.Clear();
-                for (int lineIdx = 0; lineIdx < file_text.Split(new Char[] { '\n' }).Length; lineIdx++)
-                {
-                    TextBlock newLine = new TextBlock();
-                    newLine.FontWeight = FontWeights.ExtraBlack;
-                    newLine.Foreground = Brushes.Blue;
-                    newLine.Text = (lineIdx + 1).ToString();
-                    lines.Children.Add(newLine);
-                }
-
+            List<String> openedYetFiles = new List<String>();
+            foreach (TabItem tab in openedFiles.Items) {
+                openedYetFiles.Add(tab.DataContext.ToString());
             }
+            try
+            {
+
+                if ((myStream = File.Open(openedFilePath, FileMode.Open)) != null && !openedYetFiles.Contains(openedFilePath))
+                {
+                    myStream.Close();
+                    selectedFile = openedFilePath;
+                    string file_text = File.ReadAllText(openedFilePath);
+                    sourceCode.Text = file_text;
+                    saveFileMenuItem.IsEnabled = true;
+
+                    editorTabs.SelectedIndex = 1;
+
+                    string file_name = openedFilePath.Split(new Char[] { '\\' })[openedFilePath.Split(new Char[] { '\\' }).Length - 1];
+                    string file_ext = file_name.Split(new Char[] { '.' })[file_name.Split(new Char[] { '.' }).Length - 1];
+                    sourceCode.SpellCheck.CustomDictionaries.Clear();
+                    if (file_ext == "js")
+                    {
+                        sourceCode.SpellCheck.CustomDictionaries.Add(new Uri(@"pack://application:,,,/JsParser.lex"));
+                    }
+                    else if (file_ext == "css")
+                    {
+                        sourceCode.SpellCheck.CustomDictionaries.Add(new Uri(@"pack://application:,,,/CssParser.lex"));
+                    }
+                    else if (file_ext == "html")
+                    {
+                        sourceCode.SpellCheck.CustomDictionaries.Add(new Uri(@"pack://application:,,,/HtmlParser.lex"));
+                    }
+
+                    lines.Children.Clear();
+                    for (int lineIdx = 0; lineIdx < file_text.Split(new Char[] { '\n' }).Length; lineIdx++)
+                    {
+                        TextBlock newLine = new TextBlock();
+                        newLine.FontWeight = FontWeights.ExtraBlack;
+                        newLine.Foreground = Brushes.Blue;
+                        newLine.Text = (lineIdx + 1).ToString();
+                        lines.Children.Add(newLine);
+                    }
+
+                    foreach (TabItem toggledFile in openedFiles.Items)
+                    {
+                        toggledFile.Foreground = Brushes.White;
+                        toggledFile.Background = Brushes.Gray;
+                    }
+                    TabItem openedFileTab = new TabItem();
+                    openedFileTab.Header = file_name;
+                    openedFileTab.Background = Brushes.Gray;
+                    openedFileTab.Height = 35;
+                    // openedFileTab.DataContext = file_text.ToString();
+                    openedFileTab.DataContext = openedFilePath;
+                    ContextMenu openedFileTabContextMenu = new ContextMenu();
+                    MenuItem openedFileTabContextMenuItem = new MenuItem();
+                    openedFileTabContextMenuItem.Header = "Закрыть файл";
+                    openedFileTabContextMenuItem.Click += CloseFileHandler;
+                    openedFileTabContextMenu.Items.Add(openedFileTabContextMenuItem);
+                    openedFileTab.ContextMenu = openedFileTabContextMenu;
+                    StackPanel openedFileTabHeader = new StackPanel();
+                    openedFileTabHeader.Orientation = Orientation.Horizontal;
+                    openedFileTabHeader.VerticalAlignment = VerticalAlignment.Center;
+                    TextBlock openedFileTabHeaderFileName = new TextBlock();
+                    openedFileTabHeaderFileName.Text = file_name;
+                    openedFileTabHeaderFileName.VerticalAlignment = VerticalAlignment.Center;
+                    openedFileTabHeaderFileName.Margin = new Thickness(5, 0, 5, 0);
+                    openedFileTabHeader.Children.Add(openedFileTabHeaderFileName);
+                    TextBlock openedFileTabHeaderFileCloseBtn = new TextBlock();
+                    openedFileTabHeaderFileCloseBtn.Text = "❌";
+                    openedFileTabHeaderFileCloseBtn.VerticalAlignment = VerticalAlignment.Center;
+                    openedFileTabHeaderFileCloseBtn.Margin = new Thickness(5, 0, 5, 0);
+                    openedFileTabHeaderFileCloseBtn.MouseUp += CloseFileHandler;
+                    openedFileTabHeader.Children.Add(openedFileTabHeaderFileCloseBtn);
+                    openedFileTab.Header = ((StackPanel)(openedFileTabHeader));
+                    openedFiles.Items.Add(openedFileTab);
+                    openedFiles.SelectedIndex = openedFiles.Items.Count - 1;
+                }
+            
+            }
+            catch (System.IO.IOException error)
+            {
+                Popup alert = new Popup();
+                TextBlock popupText = new TextBlock();
+                popupText.Text = error.Message.ToString();
+                alert.Child = popupText;
+            }
+
         }
 
         private void OpenFileFromSearchHandler(object sender, RoutedEventArgs e)
@@ -319,7 +383,7 @@ namespace Ideland
                 selectedFile = openedFilePath;
                 string file_text = File.ReadAllText(openedFilePath);
                 sourceCode.Text = file_text;
-                editorTabs.SelectedIndex = 0;
+                editorTabs.SelectedIndex = 1;
                 saveFileMenuItem.IsEnabled = true;
                 lines.Children.Clear();
                 for (int lineIdx = 0; lineIdx < file_text.Split(new Char[] { '\n' }).Length; lineIdx++)
@@ -341,7 +405,11 @@ namespace Ideland
                     SaveFile();
                 }
             }
-            
+            else if (e.Key == Key.F && ((Keyboard.Modifiers & ModifierKeys.Control) > 0) && ((Keyboard.Modifiers & ModifierKeys.Shift) > 0))
+            {
+                OpenSearchHandler();
+            }
+
         }
 
         private void EnterCodeHandler (object sender, KeyEventArgs e)
@@ -735,7 +803,12 @@ namespace Ideland
         {
             terminal.Visibility = Visibility.Visible;
             terminalInput.Focus();
-            currentDir.Text = Environment.GetFolderPath(System.Environment.SpecialFolder.UserProfile) + ">";
+            string workDir = Environment.GetFolderPath(System.Environment.SpecialFolder.UserProfile);
+            if (currentProject != "None")
+            {
+                workDir = currentProject;
+            }    
+            currentDir.Text = workDir + ">";
         }
 
         private void GetCommandDataHandler(object sender, RoutedEventArgs e)
@@ -1029,6 +1102,18 @@ namespace Ideland
                 debugger.Speak("Рисую тело расширений");
             }
 
+            editorTabs.SelectedIndex = 0;
+            startSiteBtn.IsEnabled = false;
+            foreach (TextBlock startSiteBtnItem in startSiteBtn.Children)
+            {
+                startSiteBtnItem.Foreground = Brushes.Gray;
+            }
+            currentDir.Text = Environment.GetFolderPath(System.Environment.SpecialFolder.UserProfile) + ">";
+
+            hotkeys.SelectedIndex = 0;
+
+            openedFiles.Items.Clear();
+
         }
 
         private void ToggleReplaceFieldHandler(object sender, RoutedEventArgs e)
@@ -1250,5 +1335,156 @@ namespace Ideland
                 lines.Children.Add(newLine);
             }
         }
+        private void StartSiteHandler(object sender, RoutedEventArgs e)
+        {
+            string indexHTML = currentProject + @"\index.html";
+            System.Diagnostics.Process.Start(new ProcessStartInfo
+            {
+                FileName = indexHTML,
+                UseShellExecute = true
+            });
+        }
+
+        private void OpenSearchHandler()
+        {
+            foreach (TextBlock tab in tabs.Children)
+            {
+                if (tab.Text == "🔍")
+                {
+                    tab.Foreground = System.Windows.Media.Brushes.White;
+                } else
+                {
+                    tab.Foreground = System.Windows.Media.Brushes.Gray;
+                }
+            }
+            explorer.Children.RemoveRange(0, explorer.Children.Count);
+
+            StackPanel findAndReplace = new StackPanel();
+            findAndReplace.Orientation = Orientation.Horizontal;
+            TextBlock replaceToggler = new TextBlock();
+            replaceToggler.VerticalAlignment = VerticalAlignment.Center;
+            replaceToggler.Text = "⌄";
+            replaceToggler.FontWeight = FontWeights.ExtraBlack;
+            replaceToggler.Margin = new Thickness(5, 10, 0, 10);
+            replaceToggler.Foreground = System.Windows.Media.Brushes.White;
+            findAndReplace.Children.Add(replaceToggler);
+            replaceToggler.MouseUp += ToggleReplaceFieldHandler;
+            StackPanel inputFields = new StackPanel();
+            findAndReplace.Children.Add(inputFields);
+            TextBox search = new TextBox();
+            search.BorderThickness = new Thickness(0);
+            search.ToolTip = "Поиск";
+            search.Width = 50;
+            search.Margin = new Thickness(5, 10, 0, 10);
+            search.Background = System.Windows.Media.Brushes.Black;
+            search.Foreground = System.Windows.Media.Brushes.White;
+            StackPanel searchContainer = new StackPanel();
+            searchContainer.Orientation = Orientation.Horizontal;
+            searchContainer.Children.Add(search);
+            TextBlock inputFieldCapability = new TextBlock();
+            inputFieldCapability.ToolTip = "Учитывать регистр";
+            inputFieldCapability.VerticalAlignment = VerticalAlignment.Center;
+            inputFieldCapability.HorizontalAlignment = HorizontalAlignment.Center;
+            inputFieldCapability.FontWeight = FontWeights.ExtraBlack;
+            inputFieldCapability.Width = 20;
+            inputFieldCapability.Background = Brushes.Black;
+            inputFieldCapability.Text = "🗚";
+            inputFieldCapability.Foreground = Brushes.LightGray;
+            inputFieldCapability.DataContext = "matchCase";
+            inputFieldCapability.MouseUp += ToggleCapabilityHandler;
+            searchContainer.Children.Add(inputFieldCapability);
+            inputFieldCapability = new TextBlock();
+            inputFieldCapability.ToolTip = "Учитывать целые слова";
+            inputFieldCapability.VerticalAlignment = VerticalAlignment.Center;
+            inputFieldCapability.HorizontalAlignment = HorizontalAlignment.Center;
+            inputFieldCapability.FontWeight = FontWeights.ExtraBlack;
+            inputFieldCapability.Width = 20;
+            inputFieldCapability.Background = Brushes.Black;
+            inputFieldCapability.Text = "⍛";
+            inputFieldCapability.Foreground = Brushes.LightGray;
+            inputFieldCapability.DataContext = "matchWords";
+            inputFieldCapability.MouseUp += ToggleCapabilityHandler;
+            searchContainer.Children.Add(inputFieldCapability);
+            inputFieldCapability = new TextBlock();
+            inputFieldCapability.ToolTip = "Использовать регулярные выражения";
+            inputFieldCapability.VerticalAlignment = VerticalAlignment.Center;
+            inputFieldCapability.HorizontalAlignment = HorizontalAlignment.Center;
+            inputFieldCapability.FontWeight = FontWeights.ExtraBlack;
+            inputFieldCapability.Width = 20;
+            inputFieldCapability.Background = Brushes.Black;
+            inputFieldCapability.Text = "*";
+            inputFieldCapability.Foreground = Brushes.LightGray;
+            inputFieldCapability.DataContext = "regex";
+            inputFieldCapability.MouseUp += ToggleCapabilityHandler;
+            searchContainer.Children.Add(inputFieldCapability);
+            inputFields.Children.Add(searchContainer);
+            TextBox replace = new TextBox();
+            replace.BorderThickness = new Thickness(0);
+            replace.ToolTip = "Замена";
+            replace.Width = 90;
+            replace.Margin = new Thickness(5, 10, 0, 10);
+            replace.Background = System.Windows.Media.Brushes.Black;
+            replace.Foreground = System.Windows.Media.Brushes.White;
+            StackPanel replaceContainer = new StackPanel();
+            replaceContainer.Orientation = Orientation.Horizontal;
+            replaceContainer.Children.Add(replace);
+            inputFieldCapability = new TextBlock();
+            inputFieldCapability.ToolTip = "Учитывать регистр";
+            inputFieldCapability.VerticalAlignment = VerticalAlignment.Center;
+            inputFieldCapability.HorizontalAlignment = HorizontalAlignment.Center;
+            inputFieldCapability.FontWeight = FontWeights.ExtraBlack;
+            inputFieldCapability.Width = 20;
+            inputFieldCapability.Background = Brushes.Black;
+            inputFieldCapability.Text = "🗛";
+            inputFieldCapability.Foreground = Brushes.LightGray;
+            inputFieldCapability.DataContext = "matchReplaceCase";
+            inputFieldCapability.MouseUp += ToggleCapabilityHandler;
+            replaceContainer.Children.Add(inputFieldCapability);
+            inputFields.Children.Add(replaceContainer);
+            explorer.Children.Add(findAndReplace);
+            search.TextChanged += SearchFilesHandler;
+            replace.TextChanged += ReplaceFilesHandler;
+            if (currentProject == "None")
+            {
+                TextBlock notOpenedProject = new TextBlock();
+                notOpenedProject.Text = "Вы еще не открыли проект";
+                notOpenedProject.Foreground = System.Windows.Media.Brushes.White;
+                notOpenedProject.Margin = new Thickness(5, 5, 0, 5);
+                explorer.Children.Add(notOpenedProject);
+            }
+
+        }
+
+        private void ToggleFileHandler(object sender, SelectionChangedEventArgs e)
+        {
+            debugger.Speak("ToggleFileHandler");
+            TabControl toggledFiles = ((TabControl)(sender));
+            if (toggledFiles.SelectedIndex >= 0) {
+                foreach (TabItem toggledFile in toggledFiles.Items)
+                {
+                    toggledFile.Foreground = Brushes.White;
+                    toggledFile.Background = Brushes.Gray;
+                }
+                TabItem currentTab = ((TabItem)(toggledFiles.Items[toggledFiles.SelectedIndex]));
+                currentTab.Foreground = Brushes.Black;
+                // editorTabs.SelectedIndex = toggledFiles.SelectedIndex - 1;
+                // sourceCode.Text = currentTab.DataContext.ToString();
+                sourceCode.Text = File.ReadAllText(currentTab.DataContext.ToString());
+            }
+        }
+
+        private void CloseFileHandler(object sender, RoutedEventArgs e)
+        {
+            if (openedFiles.Items.Count >= 2)
+            {
+                // editorTabs.SelectedIndex = openedFiles.SelectedIndex + 1;
+                sourceCode.Text = File.ReadAllText(((TabItem)(openedFiles.Items[openedFiles.SelectedIndex])).DataContext.ToString());
+            } else if (openedFiles.Items.Count == 1)
+            {
+                editorTabs.SelectedIndex = 0;
+            }
+            openedFiles.Items.RemoveAt(openedFiles.SelectedIndex);
+        }
+
     }
 }
