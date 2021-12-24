@@ -16,6 +16,7 @@ using System.Windows.Shapes;
 using System.Speech.Synthesis;
 using System.IO;
 using Microsoft.Win32;
+using System.Text.RegularExpressions;
 
 namespace Ideland
 {
@@ -33,13 +34,15 @@ namespace Ideland
         public bool isMatchWords = false;
         public bool isRegex = false;
         public bool isMatchReplaceCase = false;
+        public List<String> projectFiles;
+
         public MainWindow()
         {
             InitializeComponent();
 
             debugger = new SpeechSynthesizer();
             activeTab = startActiveTab;
-            //  JavaScript
+            projectFiles = new List<String>();
 
         }
 
@@ -308,13 +311,25 @@ namespace Ideland
             StackPanel openedFile = ((StackPanel)(sender));
             string openedFilePath = openedFile.DataContext.ToString();
             Stream myStream;
+            UnSelectFiles(explorer);
+            openedFile.Background = System.Windows.Media.Brushes.SkyBlue;
             if ((myStream = File.Open(openedFilePath, FileMode.Open)) != null)
             {
                 myStream.Close();
                 selectedFile = openedFilePath;
                 string file_text = File.ReadAllText(openedFilePath);
                 sourceCode.Text = file_text;
+                editorTabs.SelectedIndex = 0;
                 saveFileMenuItem.IsEnabled = true;
+                lines.Children.Clear();
+                for (int lineIdx = 0; lineIdx < file_text.Split(new Char[] { '\n' }).Length; lineIdx++)
+                {
+                    TextBlock newLine = new TextBlock();
+                    newLine.FontWeight = FontWeights.ExtraBlack;
+                    newLine.Foreground = Brushes.Blue;
+                    newLine.Text = (lineIdx + 1).ToString();
+                    lines.Children.Add(newLine);
+                }
             }
         }
 
@@ -326,26 +341,48 @@ namespace Ideland
                     SaveFile();
                 }
             }
-            else {
-                // просто ввод кода
-                /*string[] literalSeparators = sourceCode.Text.Split(new Char[] { ' ', '\n' });
-                foreach (string literal in literalSeparators)
-                {
-                    if (literal == "<html>" || literal == "<head>" || literal == "<body>")
-                    {
+            
+        }
 
-                    }
-                }*/
-                lines.Children.Clear();
-                for (int lineIdx = 0; lineIdx < sourceCode.LineCount; lineIdx++)
+        private void EnterCodeHandler (object sender, KeyEventArgs e)
+        {
+            /*string[] literalSeparators = sourceCode.Text.Split(new Char[] { ' ', '\n' });
+            foreach (string literal in literalSeparators)
+            {
+                if (literal == "<html>" || literal == "<head>" || literal == "<body>")
                 {
-                    TextBlock newLine = new TextBlock();
-                    newLine.FontWeight = FontWeights.ExtraBlack;
-                    newLine.Foreground = Brushes.Blue;
-                    newLine.Text = (lineIdx + 1).ToString();
-                    lines.Children.Add(newLine);
+
                 }
+            }*/
+            debugger.Speak("enterCodeHandler ");
+            lines.Children.Clear();
+            for (int lineIdx = 0; lineIdx < sourceCode.LineCount; lineIdx++)
+            {
+                TextBlock newLine = new TextBlock();
+                newLine.FontWeight = FontWeights.ExtraBlack;
+                int selectionIdx = sourceCode.SelectionStart;
+                if (e.Key == Key.Up)
+                {
+                    selectionIdx = sourceCode.CaretIndex;
+                    debugger.Speak("каретка вторая " + selectionIdx.ToString());
+                }
+                else if (e.Key == Key.Down)
+                {
+                    selectionIdx = sourceCode.CaretIndex;
+                    debugger.Speak("каретка вторая " + selectionIdx.ToString());
+                }
+                if (lineIdx == sourceCode.GetLineIndexFromCharacterIndex(selectionIdx))
+                {
+                    newLine.Foreground = Brushes.Red;
+                }
+                else
+                {
+                    newLine.Foreground = Brushes.Blue;
+                }
+                newLine.Text = (lineIdx + 1).ToString();
+                lines.Children.Add(newLine);
             }
+
         }
 
         private void SaveFileHandler(object sender, RoutedEventArgs e)
@@ -532,7 +569,11 @@ namespace Ideland
                 string keywords = search.Text;
 
                 List<String> searchFiles = new List<String>();
-                string[] projectFiles = Directory.GetFiles(currentProject);
+                //string[] projectFiles = Directory.GetFiles(currentProject);
+                projectFiles.Clear();
+                projectFiles = Directory.GetFiles(currentProject).ToList();
+                GetAllFiles(currentProject);
+
                 foreach (string projectFile in projectFiles)
                 {
                     Stream myStream;
@@ -540,9 +581,24 @@ namespace Ideland
                     {
                         myStream.Close();
                         string file_text = File.ReadAllText(projectFile);
-                        if ((file_text.Contains(keywords) && isMatchCase) || (file_text.ToLower().Contains(keywords.ToLower()) && !isMatchCase))
+                        try {
+                            string expression = keywords;
+                            if (isMatchWords)
+                            {
+                                expression = @"\s+" + keywords + @"\s+";
+                            }
+                            Regex rx = new Regex(expression,
+                                RegexOptions.Compiled | RegexOptions.IgnoreCase
+                            );
+                            MatchCollection matches = rx.Matches(file_text);
+                            if ((file_text.Contains(keywords) && isMatchCase) || (file_text.ToLower().Contains(keywords.ToLower()) && !isMatchCase) || (matches.Count >= 1 && isMatchWords) || (matches.Count >= 1 && isRegex))
+                            {
+                                searchFiles.Add(projectFile);
+                            }
+                        }
+                        catch
                         {
-                            searchFiles.Add(projectFile);
+                            // search.Text = "";
                         }
                     }
                 }
@@ -575,7 +631,10 @@ namespace Ideland
                 string keywords = search.Text;
 
                 List<String> searchFiles = new List<String>();
-                string[] projectFiles = Directory.GetFiles(currentProject);
+                // string[] projectFiles = Directory.GetFiles(currentProject);
+                projectFiles.Clear();
+                projectFiles = Directory.GetFiles(currentProject).ToList();
+                GetAllFiles(currentProject);
                 foreach (string projectFile in projectFiles)
                 {
                     Stream myStream;
@@ -583,9 +642,20 @@ namespace Ideland
                     {
                         myStream.Close();
                         string file_text = File.ReadAllText(projectFile);
-                        if ((file_text.Contains(keywords) && isMatchCase) || (file_text.ToLower().Contains(keywords.ToLower()) && !isMatchCase))
+                        try
                         {
-                            searchFiles.Add(projectFile);
+                            Regex rx = new Regex(keywords,
+                                RegexOptions.Compiled | RegexOptions.IgnoreCase
+                            );
+                            MatchCollection matches = rx.Matches(file_text);
+                            if ((file_text.Contains(keywords) && isMatchCase) || (file_text.ToLower().Contains(keywords.ToLower()) && !isMatchCase) || (matches.Count >= 1 && isRegex))
+                            {
+                                searchFiles.Add(projectFile);
+                            }
+                        }
+                        catch
+                        {
+                            // search.Text = "";
                         }
                     }
                 }
@@ -1075,7 +1145,10 @@ namespace Ideland
                 string keywords = search.Text;
 
                 List<String> searchFiles = new List<String>();
-                string[] projectFiles = Directory.GetFiles(currentProject);
+                // string[] projectFiles = Directory.GetFiles(currentProject);
+                projectFiles.Clear();
+                projectFiles = Directory.GetFiles(currentProject).ToList();
+                GetAllFiles(currentProject); 
                 foreach (string projectFile in projectFiles)
                 {
                     Stream myStream;
@@ -1083,9 +1156,25 @@ namespace Ideland
                     {
                         myStream.Close();
                         string file_text = File.ReadAllText(projectFile);
-                        if ((file_text.Contains(keywords) && isMatchCase) || (file_text.ToLower().Contains(keywords.ToLower()) && !isMatchCase))
+                        try
                         {
-                            searchFiles.Add(projectFile);
+                            string expression = keywords;
+                            if (isMatchWords)
+                            {
+                                expression = @"\s+" + keywords + @"\s+";
+                            }
+                            Regex rx = new Regex(expression,
+                                RegexOptions.Compiled | RegexOptions.IgnoreCase
+                            );
+                            MatchCollection matches = rx.Matches(file_text);
+                            if ((file_text.Contains(keywords) && isMatchCase) || (file_text.ToLower().Contains(keywords.ToLower()) && !isMatchCase) || (matches.Count >= 1 && isMatchWords) || (matches.Count >= 1 && isRegex))
+                            {
+                                searchFiles.Add(projectFile);
+                            }
+                        }
+                        catch
+                        {
+                            // search.Text = "";
                         }
                     }
                 }
@@ -1128,5 +1217,38 @@ namespace Ideland
             }
         }
 
+        private void GetAllFiles(string folder)
+        {
+            foreach (string d in Directory.GetDirectories(folder))
+            {
+                foreach (string f in Directory.GetFiles(d))
+                {
+                    projectFiles.Add(f);
+                }
+                GetAllFiles(d);
+            }
+        }
+        
+        private void EnterCodeSelectionHandler(object sender, RoutedEventArgs e)
+        {
+            // debugger.Speak("enterCodeHandler ");
+            lines.Children.Clear();
+            for (int lineIdx = 0; lineIdx < sourceCode.LineCount; lineIdx++)
+            {
+                TextBlock newLine = new TextBlock();
+                newLine.FontWeight = FontWeights.ExtraBlack;
+                int selectionIdx = sourceCode.SelectionStart;
+                if (lineIdx == sourceCode.GetLineIndexFromCharacterIndex(selectionIdx))
+                {
+                    newLine.Foreground = Brushes.Red;
+                }
+                else
+                {
+                    newLine.Foreground = Brushes.Blue;
+                }
+                newLine.Text = (lineIdx + 1).ToString();
+                lines.Children.Add(newLine);
+            }
+        }
     }
 }

@@ -76,7 +76,7 @@
                                 <StackPanel x:Name="lines" Margin="10, 2, 10, 0">
                                     <TextBlock Text="1" />
                                 </StackPanel>
-                                <TextBox x:Name="sourceCode" SpellCheck.IsEnabled="True" AcceptsReturn="True" MinLines="999" DockPanel.Dock="Top" Background="Transparent" BorderThickness="0" KeyUp="CodeHotKeysHandler">
+                                <TextBox x:Name="sourceCode" SpellCheck.IsEnabled="True" AcceptsReturn="True" MinLines="999" DockPanel.Dock="Top" Background="Transparent" BorderThickness="0" KeyUp="CodeHotKeysHandler" SelectionChanged="EnterCodeSelectionHandler">
                                     <SpellCheck.CustomDictionaries>
                                         <sys:Uri>pack://application:,,,/JsParser.lex</sys:Uri>
                                     </SpellCheck.CustomDictionaries>
