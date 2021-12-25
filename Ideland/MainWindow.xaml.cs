@@ -36,7 +36,7 @@ namespace Ideland
         public bool isRegex = false;
         public bool isMatchReplaceCase = false;
         public List<String> projectFiles;
-
+        public bool isFileModified = false;
         public MainWindow()
         {
             InitializeComponent();
@@ -57,10 +57,12 @@ namespace Ideland
                 try
                 {
                     returnedCommand = Process.Start(developerCmdInput.Text);
-                } catch (System.ComponentModel.Win32Exception error)
+                }
+                catch (System.ComponentModel.Win32Exception error)
                 {
                     debugger.Speak("Не могу выполнить команду");
-                } finally
+                }
+                finally
                 {
                     StackPanel executedCommand = new StackPanel();
                     executedCommand.Orientation = Orientation.Horizontal;
@@ -81,7 +83,8 @@ namespace Ideland
             }
         }
 
-        private void GetFolderFiles(string folderDir, StackPanel folder) {
+        private void GetFolderFiles(string folderDir, StackPanel folder)
+        {
 
             string workDir = folderDir.Substring(currentProject.Length);
             int tabulation = workDir.Split(new Char[] { '\\' }).Length;
@@ -123,7 +126,7 @@ namespace Ideland
 
                     projectItemIcon.Foreground = System.Windows.Media.Brushes.White;
                     projectItemIcon.Text = ">";
-                    
+
                     // folder.Children.Add(projectItemIcon);
                     projectItem.Children.Add(projectItemIcon);
 
@@ -157,7 +160,7 @@ namespace Ideland
         private void GetProjectFiles(string projectDir)
         {
             // string[] projectFiles =  Directory.GetFiles(projectDir);
-            string[] projectFiles =  Directory.GetFileSystemEntries(projectDir);
+            string[] projectFiles = Directory.GetFileSystemEntries(projectDir);
             StackPanel projectItem = new StackPanel();
             projectItem.Orientation = Orientation.Horizontal;
             projectItem.Margin = new Thickness(10, 5, 10, 5);
@@ -211,7 +214,8 @@ namespace Ideland
                 explorer.Children.Add(projectItemContainer);
 
                 projectItem.DataContext = projectFile.ToString();
-                if (File.Exists(projectFile)) {
+                if (File.Exists(projectFile))
+                {
                     projectItem.MouseUp += OpenFileHandler;
                 }
                 else if (Directory.Exists(projectFile))
@@ -281,7 +285,8 @@ namespace Ideland
             string openedFilePath = openedFile.DataContext.ToString();
             Stream myStream;
             List<String> openedYetFiles = new List<String>();
-            foreach (TabItem tab in openedFiles.Items) {
+            foreach (TabItem tab in openedFiles.Items)
+            {
                 openedYetFiles.Add(tab.DataContext.ToString());
             }
             try
@@ -343,6 +348,12 @@ namespace Ideland
                     StackPanel openedFileTabHeader = new StackPanel();
                     openedFileTabHeader.Orientation = Orientation.Horizontal;
                     openedFileTabHeader.VerticalAlignment = VerticalAlignment.Center;
+                    TextBlock openedFileTabHeaderFileModified = new TextBlock();
+                    openedFileTabHeaderFileModified.Text = "";
+                    openedFileTabHeaderFileModified.FontWeight = FontWeights.ExtraBlack;
+                    openedFileTabHeaderFileModified.VerticalAlignment = VerticalAlignment.Center;
+                    openedFileTabHeaderFileModified.Margin = new Thickness(5, 0, 5, 0);
+                    openedFileTabHeader.Children.Add(openedFileTabHeaderFileModified);
                     TextBlock openedFileTabHeaderFileName = new TextBlock();
                     openedFileTabHeaderFileName.Text = file_name;
                     openedFileTabHeaderFileName.VerticalAlignment = VerticalAlignment.Center;
@@ -357,8 +368,9 @@ namespace Ideland
                     openedFileTab.Header = ((StackPanel)(openedFileTabHeader));
                     openedFiles.Items.Add(openedFileTab);
                     openedFiles.SelectedIndex = openedFiles.Items.Count - 1;
+
                 }
-            
+
             }
             catch (System.IO.IOException error)
             {
@@ -366,6 +378,7 @@ namespace Ideland
                 TextBlock popupText = new TextBlock();
                 popupText.Text = error.Message.ToString();
                 alert.Child = popupText;
+                MessageBox.Show("Внутреняя ошибка Ideland", "Ideland", MessageBoxButton.OK);
             }
 
         }
@@ -401,7 +414,8 @@ namespace Ideland
         {
             if (e.Key == Key.S && ((Keyboard.Modifiers & ModifierKeys.Control) > 0))
             {
-                if (selectedFile != "None") {
+                if (selectedFile != "None")
+                {
                     SaveFile();
                 }
             }
@@ -412,7 +426,7 @@ namespace Ideland
 
         }
 
-        private void EnterCodeHandler (object sender, KeyEventArgs e)
+        private void EnterCodeHandler(object sender, KeyEventArgs e)
         {
             /*string[] literalSeparators = sourceCode.Text.Split(new Char[] { ' ', '\n' });
             foreach (string literal in literalSeparators)
@@ -461,16 +475,17 @@ namespace Ideland
         private void SaveFile()
         {
             debugger.Speak("Сохранить файл");
-            Stream myStream;
+            /*Stream myStream;
             if ((myStream = File.Open(selectedFile, FileMode.Open)) != null)
             {
                 using (StreamWriter sw = new StreamWriter(myStream))
-                {
-                    sw.Write(sourceCode.Text);
-                    // myStream.Close();
-                    // sw.Close();
-                }
-            }
+                {*/
+            File.WriteAllText(selectedFile, sourceCode.Text);
+            // sw.Write(sourceCode.Text);
+            // myStream.Close();
+            // sw.Close();
+            /*}
+        }*/
         }
 
         private void SelectTabHandler(object sender, MouseButtonEventArgs e)
@@ -489,7 +504,8 @@ namespace Ideland
                 if (currentProject != "None")
                 {
                     GetProjectFiles(currentProject);
-                } else
+                }
+                else
                 {
                     Border notFoundProjectBorder = new Border();
                     notFoundProjectBorder.BorderBrush = Brushes.White;
@@ -649,7 +665,8 @@ namespace Ideland
                     {
                         myStream.Close();
                         string file_text = File.ReadAllText(projectFile);
-                        try {
+                        try
+                        {
                             string expression = keywords;
                             if (isMatchWords)
                             {
@@ -667,6 +684,7 @@ namespace Ideland
                         catch
                         {
                             // search.Text = "";
+                            MessageBox.Show("Внутреняя ошибка Ideland", "Ideland", MessageBoxButton.OK);
                         }
                     }
                 }
@@ -724,6 +742,7 @@ namespace Ideland
                         catch
                         {
                             // search.Text = "";
+                            MessageBox.Show("Внутреняя ошибка Ideland", "Ideland", MessageBoxButton.OK);
                         }
                     }
                 }
@@ -766,10 +785,10 @@ namespace Ideland
             else if (folderIconSource == "⌄")
             {
                 folderIcon.Text = ">";
-                
+
                 // ((StackPanel)(folder.Parent)).Children.RemoveRange(1, folder.Children.Count);
                 ((StackPanel)(folder.Parent)).Children.RemoveRange(1, ((StackPanel)(folder.Parent)).Children.Count);
-            
+
             }
         }
 
@@ -781,7 +800,8 @@ namespace Ideland
                 if (activeTab.Text == tab.Text)
                 {
                     tab.Foreground = System.Windows.Media.Brushes.White;
-                } else
+                }
+                else
                 {
                     tab.Foreground = System.Windows.Media.Brushes.Gray;
                 }
@@ -807,7 +827,7 @@ namespace Ideland
             if (currentProject != "None")
             {
                 workDir = currentProject;
-            }    
+            }
             currentDir.Text = workDir + ">";
         }
 
@@ -852,7 +872,8 @@ namespace Ideland
                 {
                     currentTab = tab;
                     tab.Foreground = System.Windows.Media.Brushes.White;
-                } else
+                }
+                else
                 {
                     tab.Foreground = System.Windows.Media.Brushes.Gray;
                 }
@@ -1119,7 +1140,8 @@ namespace Ideland
         private void ToggleReplaceFieldHandler(object sender, RoutedEventArgs e)
         {
             TextBlock replaceToggler = ((TextBlock)(sender));
-            if (replaceToggler.Text == ">") {
+            if (replaceToggler.Text == ">")
+            {
                 replaceToggler.Text = "⌄";
                 TextBox replace = new TextBox();
                 replace.BorderThickness = new Thickness(0);
@@ -1233,7 +1255,7 @@ namespace Ideland
                 // string[] projectFiles = Directory.GetFiles(currentProject);
                 projectFiles.Clear();
                 projectFiles = Directory.GetFiles(currentProject).ToList();
-                GetAllFiles(currentProject); 
+                GetAllFiles(currentProject);
                 foreach (string projectFile in projectFiles)
                 {
                     Stream myStream;
@@ -1281,7 +1303,7 @@ namespace Ideland
             }
 
         }
-        
+
         private void UnSelectFiles(StackPanel folder)
         {
             foreach (UIElement projectFile in folder.Children)
@@ -1292,10 +1314,13 @@ namespace Ideland
                     if (folder.Children.Count >= 1)
                     {
                         UnSelectFiles(((StackPanel)(projectFile)));
-                    } else {
+                    }
+                    else
+                    {
                         return;
                     }
-                } else
+                }
+                else
                 {
                     return;
                 }
@@ -1313,7 +1338,7 @@ namespace Ideland
                 GetAllFiles(d);
             }
         }
-        
+
         private void EnterCodeSelectionHandler(object sender, RoutedEventArgs e)
         {
             // debugger.Speak("enterCodeHandler ");
@@ -1352,7 +1377,8 @@ namespace Ideland
                 if (tab.Text == "🔍")
                 {
                     tab.Foreground = System.Windows.Media.Brushes.White;
-                } else
+                }
+                else
                 {
                     tab.Foreground = System.Windows.Media.Brushes.Gray;
                 }
@@ -1459,7 +1485,8 @@ namespace Ideland
         {
             debugger.Speak("ToggleFileHandler");
             TabControl toggledFiles = ((TabControl)(sender));
-            if (toggledFiles.SelectedIndex >= 0) {
+            if (toggledFiles.SelectedIndex >= 0)
+            {
                 foreach (TabItem toggledFile in toggledFiles.Items)
                 {
                     toggledFile.Foreground = Brushes.White;
@@ -1475,16 +1502,60 @@ namespace Ideland
 
         private void CloseFileHandler(object sender, RoutedEventArgs e)
         {
-            if (openedFiles.Items.Count >= 2)
+            if (!isFileModified)
             {
-                // editorTabs.SelectedIndex = openedFiles.SelectedIndex + 1;
-                sourceCode.Text = File.ReadAllText(((TabItem)(openedFiles.Items[openedFiles.SelectedIndex])).DataContext.ToString());
-            } else if (openedFiles.Items.Count == 1)
-            {
-                editorTabs.SelectedIndex = 0;
+                if (openedFiles.Items.Count >= 2)
+                {
+                    // editorTabs.SelectedIndex = openedFiles.SelectedIndex + 1;
+                    sourceCode.Text = File.ReadAllText(((TabItem)(openedFiles.Items[openedFiles.SelectedIndex])).DataContext.ToString());
+                }
+                else if (openedFiles.Items.Count == 1)
+                {
+                    editorTabs.SelectedIndex = 0;
+                }
+                openedFiles.Items.RemoveAt(openedFiles.SelectedIndex);
+
+                isFileModified = false;
             }
-            openedFiles.Items.RemoveAt(openedFiles.SelectedIndex);
+            else if (isFileModified)
+            {
+                MessageBoxResult isSave = MessageBox.Show("Сохранить измененный файл", "Ideland", MessageBoxButton.OKCancel);
+                switch (isSave)
+                {
+                    case MessageBoxResult.OK:
+                        File.WriteAllText(((TabItem)(openedFiles.Items[openedFiles.SelectedIndex])).DataContext.ToString(), sourceCode.Text);
+                        if (openedFiles.Items.Count >= 2)
+                        {
+                            sourceCode.Text = File.ReadAllText(((TabItem)(openedFiles.Items[openedFiles.SelectedIndex])).DataContext.ToString());
+                        }
+                        else if (openedFiles.Items.Count == 1)
+                        {
+                            editorTabs.SelectedIndex = 0;
+                        }
+                        openedFiles.Items.RemoveAt(openedFiles.SelectedIndex);
+                        isFileModified = false;
+                        break;
+                    case MessageBoxResult.Cancel:
+                        break;
+                }
+            }
+
         }
 
+        private void ModifiesTrackerHandler(object sender, TextChangedEventArgs e)
+        {
+            if (openedFiles.Items.Count >= 1)
+            {
+                if (sourceCode.Text == File.ReadAllText(((TextBlock)(((StackPanel)(((TabItem)(openedFiles.Items[openedFiles.SelectedIndex])).Header)).Children[0])).DataContext.ToString()))
+                {
+                    isFileModified = false;
+                    ((TextBlock)(((StackPanel)(((TabItem)(openedFiles.Items[openedFiles.SelectedIndex])).Header)).Children[0])).Text = "";
+                } else
+                {
+                    isFileModified = true;
+                    ((TextBlock)(((StackPanel)(((TabItem)(openedFiles.Items[openedFiles.SelectedIndex])).Header)).Children[0])).Text = "*";
+                }
+            }
+        }
     }
 }
