@@ -155,6 +155,8 @@ namespace Ideland
                     projectItem.DataContext = projectFile.ToString();
                     projectItem.MouseUp += ToggleFolderHandler;
                 }
+                projectItem.MouseEnter += HoverProjectItemHandler;
+                projectItem.MouseLeave += HoutProjectItemHandler;
             }
         }
         private void GetProjectFiles(string projectDir)
@@ -211,6 +213,10 @@ namespace Ideland
                 // explorer.Children.Add(projectItem);
                 StackPanel projectItemContainer = new StackPanel();
                 projectItemContainer.Children.Add(projectItem);
+                /*projectItemContainer.MouseEnter += HoverProjectItemHandler;
+                projectItemContainer.MouseLeave += HoutProjectItemHandler;*/
+                projectItem.MouseEnter += HoverProjectItemHandler;
+                projectItem.MouseLeave += HoutProjectItemHandler;
                 explorer.Children.Add(projectItemContainer);
 
                 projectItem.DataContext = projectFile.ToString();
@@ -422,6 +428,14 @@ namespace Ideland
             else if (e.Key == Key.F && ((Keyboard.Modifiers & ModifierKeys.Control) > 0) && ((Keyboard.Modifiers & ModifierKeys.Shift) > 0))
             {
                 OpenSearchHandler();
+            }
+            else if (e.Key == Key.Space && ((Keyboard.Modifiers & ModifierKeys.Control) > 0))
+            {
+                OpenIntelliSenseHandler();
+            }
+            else if (e.Key == Key.Escape && sourceCode.ContextMenu.IsOpen)
+            {
+                CloseIntelliSenseHandler();
             }
 
         }
@@ -1557,5 +1571,63 @@ namespace Ideland
                 }
             }
         }
+
+        private void OpenIntelliSenseHandler()
+        {
+            sourceCode.ContextMenu.IsOpen = true;
+            sourceCode.ContextMenu.Items.Clear();
+            List<String> snippets = new List<String>
+            {
+                "length",
+                "substring",
+                "push"
+            };
+            foreach (string snippet in snippets)
+            {
+                MenuItem intelliSenseItem = new MenuItem();
+                intelliSenseItem.Header = snippet;
+                intelliSenseItem.DataContext = snippet.ToString();
+                intelliSenseItem.Click += InsertSnippetHandler;
+                sourceCode.ContextMenu.Items.Add(intelliSenseItem);
+            }
+        }
+
+        private void CloseIntelliSenseHandler()
+        {
+            sourceCode.ContextMenu.IsOpen = false;
+        }
+
+        private void InsertSnippetHandler(object sender, RoutedEventArgs e)
+        {
+            string snippet = ((MenuItem)(sender)).DataContext.ToString();
+            sourceCode.Text.Insert(sourceCode.CaretIndex, snippet);
+        }
+
+        private void BlockCharactersHandler(object sender, TextCompositionEventArgs e)
+        {
+            if (e.Text.ToLower() == " ")
+            {
+                e.Handled = true;
+            }
+        }
+
+        private void HoverProjectItemHandler(object sender, MouseEventArgs e)
+        {
+            StackPanel projectItem = ((StackPanel)(sender));
+            if (projectItem.Background != Brushes.SkyBlue)
+            {
+                projectItem.Background = Brushes.DarkGray;
+            }
+        }
+
+        private void HoutProjectItemHandler(object sender, MouseEventArgs e)
+        {
+            StackPanel projectItem = ((StackPanel)(sender));
+            if (projectItem.Background != Brushes.SkyBlue)
+            {
+                projectItem.Background = Brushes.Transparent;
+            }
+        }
+
     }
 }
